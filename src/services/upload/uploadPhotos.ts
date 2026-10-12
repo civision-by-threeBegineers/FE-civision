@@ -8,10 +8,11 @@
 //      400 -> { success: false, error } or { success: false, data: { errors: [{ filename, error }] } }
 //
 // 2. POST {VITE_API_BASE_URL}/api/analysis
-//      multipart/form-data: "photo" (the image, used for EXIF + OCR) and
-//      "payload" = JSON string { mediaId, detections: [{ label, confidence, bbox }] }.
-//      The backend reads the coordinates (EXIF GPS first, then OCR of the
-//      coordinate overlay), matches them to zones and saves the analysis.
+//      multipart/form-data: "photo" (the image, used for EXIF) and
+//      "payload" = JSON string { mediaId, detections: [{ label, confidence, bbox }], ocrText }.
+//      ocrText is the coordinate overlay read in the browser (services/ocr).
+//      The backend picks the coordinates (EXIF GPS first, then ocrText, then
+//      manual), matches them to zones and saves the analysis.
 //      201 -> { ok: true, message, detectionCount, coordinateSource,
 //               coordinate: { lat, lon } | null, ocrRawText,
 //               result: { analysisId, totalDetections, totalViolations, unknownLocation } }
@@ -20,6 +21,7 @@
 // Vercel limits a request body to ~4.5 MB, so photos are sent one at a time and
 // oversized photos are shrunk first.
 import type { Detection } from '../yolo/postprocessing'
+import { readOverlayText } from '../ocr/readOverlayText'
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 const UPLOAD_ENDPOINT = `${BASE_URL}/api/upload`
@@ -159,14 +161,16 @@ async function analyzePhoto({
   mediaId,
   file,
   detections,
+  ocrText,
 }: {
   mediaId: MediaId
   file: File
   detections: PayloadDetection[]
+  ocrText: string | null
 }): Promise<AnalysisResult> {
   const body = new FormData()
   body.append('photo', file, file.name)
-  body.append('payload', JSON.stringify({ mediaId, detections }))
+  body.append('payload', JSON.stringify({ mediaId, detections, ocrText }))
 
   const { res, json } = await postForm(ANALYSIS_ENDPOINT, body)
   if (!json) {
@@ -212,6 +216,7 @@ export async function sendPhotoToBackend(file: File, detections: Detection[]): P
     },
   }))
 
-  const mediaId = await uploadMedia(toSend)
-  return analyzePhoto({ mediaId, file: toSend, detections: payloadDetections })
+  // OCR the original photo (sharpest text) while the upload runs. It never throws.
+  const [mediaId, ocrText] = await Promise.all([uploadMedia(toSend), readOverlayText(file)])
+  return analyzePhoto({ mediaId, file: toSend, detections: payloadDetections, ocrText })
 }
