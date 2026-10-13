@@ -61,6 +61,18 @@
   margin: 0;
 }
 
+/* Foto bukti: tampil utuh (tidak ter-crop), lebar penuh popup. */
+.vpopup__photo {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #f0effb;
+}
+
 .vpopup__address {
   font-size: 13px;
   font-weight: 600;

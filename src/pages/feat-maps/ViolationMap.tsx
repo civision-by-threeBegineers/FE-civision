@@ -109,6 +109,15 @@ export function ViolationMap({
           {interactive && (
             <Popup>
               <div className="vpopup">
+                {v.photoUrl && (
+                  <img
+                    className="vpopup__photo"
+                    src={v.photoUrl}
+                    alt={v.address ?? 'Bukti pelanggaran'}
+                    loading="lazy"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                )}
                 <p className="vpopup__address">{v.address ?? 'Lokasi tanpa alamat'}</p>
                 <p className={`vpopup__status vpopup__status--${v.status}`}>
                   {STATUS_LABELS[v.status] ?? v.status}
