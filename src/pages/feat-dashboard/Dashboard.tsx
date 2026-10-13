@@ -19,7 +19,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const location = useLocation()
   const mapPreviewRef = useRef<HTMLDivElement>(null)
-  const { violations, error: mapError } = useMapData()
+  const { violations, zones, error: mapError } = useMapData()
   const previewViolations = useMemo(() => filterByTimeRange(violations, 'weekly'), [violations])
 
   const openMap = () => navigate('/dashboard/map')
@@ -110,7 +110,7 @@ export default function Dashboard() {
             }
           }}
         >
-          <ViolationMap violations={previewViolations} interactive={false} />
+          <ViolationMap violations={previewViolations} zones={zones} interactive={false} />
           {/* Catches every click so the preview map itself never reacts */}
           <span className="map__hit" aria-hidden="true" />
           {mapError && <span className="map__notice">Data pelanggaran gagal dimuat</span>}

@@ -103,6 +103,48 @@ export function formatDateTime(iso: string | null) {
   return `${date}, ${time}`
 }
 
+/* ---------- Zones (forbidden areas) ---------- */
+
+// GET /api/zones -> { ok: true, zones: [{ id, name, points: [[lng, lat], ...] }] }
+export interface MapZone {
+  id: string
+  name: string
+  positions: [number, number][] // [lat, lng] for Leaflet
+}
+
+// Backend points are [lng, lat] pairs; Leaflet wants [lat, lng].
+// Bad points are skipped, and zones left with fewer than 3 points are dropped.
+export function toMapZones(json: unknown): MapZone[] {
+  const body = (json ?? {}) as Record<string, unknown>
+  if (!Array.isArray(body.zones)) throw new MapDataError('format respons zona tidak sesuai.')
+
+  const result: MapZone[] = []
+  for (const raw of body.zones) {
+    const zone = (raw ?? {}) as Record<string, unknown>
+    if (!Array.isArray(zone.points)) continue
+    const positions: [number, number][] = []
+    for (const p of zone.points) {
+      if (Array.isArray(p) && isLng(p[0]) && isLat(p[1])) positions.push([p[1], p[0]])
+    }
+    if (positions.length < 3) continue
+    result.push({ id: String(zone.id), name: nonEmptyString(zone.name) ?? 'Zona terlarang', positions })
+  }
+  return result
+}
+
+export async function getZones(signal?: AbortSignal): Promise<MapZone[]> {
+  if (!BASE_URL) throw new MapDataError('alamat backend belum diatur (VITE_API_BASE_URL di .env).')
+  const res = await fetch(`${BASE_URL}/api/zones`, { signal })
+  let json: Record<string, unknown> | null = null
+  try {
+    json = await res.json()
+  } catch {
+    // leave json as null
+  }
+  if (!res.ok || !json?.ok) throw new MapDataError((json?.message as string) || `HTTP ${res.status}`)
+  return toMapZones(json)
+}
+
 /* ---------- Fetch ---------- */
 
 export async function getMapData(signal?: AbortSignal): Promise<MapViolation[]> {

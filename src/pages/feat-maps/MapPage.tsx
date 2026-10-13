@@ -14,7 +14,7 @@ const SEARCH_ZOOM = 17
 // Full-screen violation map (/dashboard/map), opened from the dashboard's map card.
 export default function MapPage() {
   const navigate = useNavigate()
-  const { violations, loading, error, retry } = useMapData()
+  const { violations, zones, loading, error, retry } = useMapData()
   const [range, setRange] = useState<TimeRange>('weekly')
   const [map, setMap] = useState<LeafletMap | null>(null)
   const markers = useRef(new Map<string, Marker>())
@@ -78,7 +78,7 @@ export default function MapPage() {
   return (
     <AppLayout title="Peta Pelanggaran" showTopbar={false} fullBleed>
       <div className="map-page">
-        <ViolationMap violations={visible} onMapReady={setMap} markerRef={setMarkerRef} />
+        <ViolationMap violations={visible} zones={zones} onMapReady={setMap} markerRef={setMarkerRef} />
 
         {/* Controls on top of the map */}
         <div className="map-page__top">

@@ -4,6 +4,7 @@ import {
   filterByTimeRange,
   searchByAddress,
   toMapViolations,
+  toMapZones,
   type MapViolation,
 } from './mapData'
 
@@ -71,6 +72,23 @@ describe('searchByAddress', () => {
     ]
     expect(searchByAddress(items, '  ')).toEqual([])
     expect(searchByAddress(items, 'ANGG').map((v) => v.id)).toEqual(['2'])
+  })
+})
+
+describe('toMapZones', () => {
+  it('flips [lng, lat] to [lat, lng] and drops unusable zones', () => {
+    const json = {
+      ok: true,
+      zones: [
+        { id: 'z1', name: 'Zona A', points: [[106.76, -6.19], [106.775, -6.19], [106.775, -6.2], [106.76, -6.2]] },
+        { id: 'z2', name: 'Kurang titik', points: [[106.76, -6.19], [106.775, -6.19]] },
+        { id: 'z3', name: '', points: [[106.76, -6.19], ['x', 1], [106.775, -6.19], [106.775, -6.2]] },
+      ],
+    }
+    expect(toMapZones(json)).toEqual([
+      { id: 'z1', name: 'Zona A', positions: [[-6.19, 106.76], [-6.19, 106.775], [-6.2, 106.775], [-6.2, 106.76]] },
+      { id: 'z3', name: 'Zona terlarang', positions: [[-6.19, 106.76], [-6.19, 106.775], [-6.2, 106.775]] },
+    ])
   })
 })
 

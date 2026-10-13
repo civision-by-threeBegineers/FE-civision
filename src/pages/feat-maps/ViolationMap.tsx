@@ -1,7 +1,12 @@
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
-import L, { type Map as LeafletMap } from 'leaflet'
+import { MapContainer, Marker, Polygon, Popup, TileLayer, Tooltip } from 'react-leaflet'
+import L, { type Map as LeafletMap, type PathOptions } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { formatDateTime, type MapViolation, type ViolationStatus } from '../../services/dashboard/mapData'
+import {
+  formatDateTime,
+  type MapViolation,
+  type MapZone,
+  type ViolationStatus,
+} from '../../services/dashboard/mapData'
 import './ViolationMap.css'
 
 export const MAP_CENTER: [number, number] = [-6.2018, 106.7829]
@@ -13,6 +18,15 @@ const STATUS_LABELS: Record<ViolationStatus, string> = {
   unverified: 'Belum Diverifikasi',
   valid: 'Valid',
   invalid: 'Tidak Valid',
+}
+
+// Forbidden zones: yellow fill at 25% opacity, with a solid yellow edge so the
+// boundary stays easy to see on the grey tiles.
+const ZONE_STYLE: PathOptions = {
+  color: '#eab308',
+  weight: 2,
+  fillColor: '#facc15',
+  fillOpacity: 0.25,
 }
 
 const escapeHtml = (s: string) =>
@@ -35,6 +49,7 @@ function markerIcon(v: MapViolation) {
 
 interface ViolationMapProps {
   violations: MapViolation[]
+  zones?: MapZone[]
   // false = static preview: no dragging/zooming/popups, markers not focusable
   interactive?: boolean
   onMapReady?: (map: LeafletMap) => void
@@ -42,7 +57,13 @@ interface ViolationMapProps {
   markerRef?: (id: string, marker: L.Marker | null) => void
 }
 
-export function ViolationMap({ violations, interactive = true, onMapReady, markerRef }: ViolationMapProps) {
+export function ViolationMap({
+  violations,
+  zones = [],
+  interactive = true,
+  onMapReady,
+  markerRef,
+}: ViolationMapProps) {
   return (
     <MapContainer
       className="violation-map"
@@ -66,6 +87,13 @@ export function ViolationMap({ violations, interactive = true, onMapReady, marke
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         maxZoom={MAX_ZOOM}
       />
+
+      {/* Zones go in the overlay pane, below the markers */}
+      {zones.map((z) => (
+        <Polygon key={z.id} positions={z.positions} pathOptions={ZONE_STYLE} interactive={interactive}>
+          {interactive && <Tooltip sticky>{z.name}</Tooltip>}
+        </Polygon>
+      ))}
 
       {violations.map((v) => (
         <Marker
