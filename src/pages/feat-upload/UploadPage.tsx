@@ -11,9 +11,6 @@ import {
 } from './DetectionResult'
 import { ensureModelReady, detectObjects, ModelLoadError } from '../../services/yolo/yoloInference'
 import { sendPhotoToBackend } from '../../services/upload/uploadPhotos'
-// Placeholder officer. Save the officer from the Upload Media design as
-// src/assets/officer-upload.png, then change this line to import that file instead.
-import officerImg from '../../../assets/officer-upload.png'
 import './UploadPage.css'
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png']
@@ -56,8 +53,11 @@ function checkFiles(fileList: FileList) {
   return { accepted, errors }
 }
 
-const isSameFile = (a: File, b: File) =>
-  a.name === b.name && a.size === b.size && a.lastModified === b.lastModified
+const isSameFile = (a: File, b: File) => {
+  a.name === b.name && 
+  a.size === b.size && 
+  a.lastModified === b.lastModified
+}
 
 // Loads a File into an <img> element the model can read.
 function loadImageElement(file: File) {
@@ -90,17 +90,13 @@ export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([])
   const [errors, setErrors] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
-  // 'idle' -> 'predicting' (ONNX in the browser) -> 'uploading' (backend OCR)
-  //        -> 'success' (popup)
   const [status, setStatus] = useState<Status>('idle')
   const [analysisResults, setAnalysisResults] = useState<DetectionItem[]>([]) // DetectionResult items
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null) // { done, total }
 
   // Start loading best.onnx as soon as the page opens, so Submit doesn't wait
   // for the download. Errors are ignored here; Submit retries and reports them.
-  useEffect(() => {
-    ensureModelReady().catch(() => {})
-  }, [])
+  useEffect(() => { ensureModelReady().catch(() => {})}, [])
 
   // Move keyboard focus into the popup when it opens
   useEffect(() => {

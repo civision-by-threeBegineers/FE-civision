@@ -123,7 +123,7 @@ async function postForm(url: string, body: FormData): Promise<{ res: Response; j
   }
 
   if (res.status === 413) {
-    throw new UploadError('foto terlalu besar untuk diterima server.', { status: 413 })
+    throw new UploadError('Ukuran foto terlalu besar untuk diterima server.', { status: 413 })
   }
 
   const text = await res.text()

@@ -159,7 +159,7 @@
   padding: 4px 14px;
   font-family: inherit;
   font-size: 12px;
-  cursor: pointer;
+  cursor: pointer;  
 }
 
 /* Previous page stays visible, dimmed, while the next one loads */
