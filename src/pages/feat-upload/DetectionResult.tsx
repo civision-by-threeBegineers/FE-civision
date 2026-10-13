@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useId, useState, type FormEvent } from 'react'
+import { sendManualCoordinate, type AnalysisResult } from '../../services/upload/uploadPhotos'
+import { isWithinRegion, parseLatLon } from '../../services/upload/manualCoordinate'
 
 // One detection. bbox is in ORIGINAL-image pixels.
 export interface Detection {
@@ -9,18 +11,8 @@ export interface Detection {
   isViolation?: boolean
 }
 
-// What sendPhotoToBackend() resolves to (see services/upload/uploadPhotos.js).
-export interface BackendAnalysis {
-  mediaId: unknown
-  message: string | null
-  coordinate: { lat: number; lon: number } | null
-  coordinateSource: string | null // 'gps_exif' | 'ocr' | 'manual' | null
-  ocrRawText: string | null
-  analysisId: unknown
-  totalDetections: number
-  totalViolations: number
-  unknownLocation: number
-}
+// What sendPhotoToBackend() resolves to (see services/upload/uploadPhotos.ts).
+export type BackendAnalysis = AnalysisResult
 
 export interface DetectionItem {
   fileName: string
@@ -38,122 +30,134 @@ const SOURCE_LABELS: Record<string, string> = {
   manual: 'manual',
 }
 
-// Draws one analysed image with its bounding boxes, plus a small summary.
-// `item` = { fileName, url, imageSize:{width,height}, result } where result comes
-// from calculateViolation(). Coordinates in result.detections[].bbox are in
-// ORIGINAL-image pixels; we scale them to the displayed <img> size.
-export function DetectionResult({ item }: { item: DetectionItem }) {
-  const imgRef = useRef<HTMLImageElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  // Re-draw whenever the image finishes layout / the window resizes.
-  const [, setTick] = useState(0)
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-  const { url, imageSize, result } = item
-  const detections = result.detections
+interface DetectionResultProps {
+  item: DetectionItem
+  // Called after a hand-typed coordinate was saved, with the backend's new response
+  onBackendUpdate?: (backend: BackendAnalysis) => void
+}
 
-  useEffect(() => {
-    const draw = () => {
-      const img = imgRef.current
-      const canvas = canvasRef.current
-      if (!img || !canvas) return
-
-      // Match the canvas to the image's displayed (CSS) size.
-      const rect = img.getBoundingClientRect()
-      if (!rect.width || !rect.height) return
-      canvas.width = rect.width
-      canvas.height = rect.height
-
-      // Scale from original-image pixels to the displayed size.
-      const sx = rect.width / imageSize.width
-      const sy = rect.height / imageSize.height
-
-      const ctx = canvas.getContext('2d')!
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      for (const d of detections) {
-        const x = d.bbox.x1 * sx
-        const y = d.bbox.y1 * sy
-        const w = (d.bbox.x2 - d.bbox.x1) * sx
-        const h = (d.bbox.y2 - d.bbox.y1) * sy
-
-        // Red for a flagged violation, purple for a plain detection.
-        const color = d.isViolation ? '#e0485a' : '#5a50c3'
-
-        ctx.lineWidth = 2
-        ctx.strokeStyle = color
-        ctx.strokeRect(x, y, w, h)
-
-        // Label: "gerobak 94%"
-        const label = `${d.className} ${Math.round(d.confidence * 100)}%`
-        ctx.font = '600 12px Poppins, system-ui, sans-serif'
-        const padX = 6
-        const textW = ctx.measureText(label).width + padX * 2
-        const labelH = 18
-        const labelY = y - labelH < 0 ? y : y - labelH // keep inside the image
-
-        ctx.fillStyle = color
-        ctx.fillRect(x, labelY, textW, labelH)
-        ctx.fillStyle = '#fff'
-        ctx.fillText(label, x + padX, labelY + 13)
-      }
-    }
-
-    draw()
-    const onResize = () => {
-      draw()
-      setTick((t) => t + 1)
-    }
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [detections, imageSize])
+// One analysed photo: the image with its best detection as a badge, the file name,
+// the detection count, and what the backend did with it. If the backend saved the
+// photo but couldn't find a coordinate (no GPS, OCR failed), a field lets the user
+// type the coordinate in.
+export function DetectionResult({ item, onBackendUpdate }: DetectionResultProps) {
+  const { detections } = item.result
+  const best = detections.reduce<Detection | null>((a, d) => (!a || d.confidence > a.confidence ? d : a), null)
+  const needsCoordinate = Boolean(item.backend && !item.backend.coordinate)
 
   return (
-    <div className="detect-result">
-      <div className="detect-result__canvas-wrap">
-        <img
-          ref={imgRef}
-          className="detect-result__img"
-          src={url}
-          alt={item.fileName}
-          onLoad={() => setTick((t) => t + 1)}
-        />
-        <canvas ref={canvasRef} className="detect-result__canvas" aria-hidden="true" />
-      </div>
-
-      <div className="detect-result__summary">
-        <span className="detect-result__name" title={item.fileName}>
-          {item.fileName}
-        </span>
-        {detections.length === 0 ? (
-          <span className="detect-result__count detect-result__count--empty">No PKL detected</span>
-        ) : (
-          <span className="detect-result__count">
-            {detections.length} det<span>{detections.length === 1 ? 'ection' : 'ections'}</span>
-            {result.violationCount > 0 && (
-              <span className="detect-result__violations">
-                {' '}
-                · {result.violationCount} violation{result.violationCount === 1 ? '' : 's'}
-              </span>
-            )}
+    <article className="detect-result">
+      <div className="detect-result__media">
+        <img className="detect-result__img" src={item.url} alt={item.fileName} />
+        {best && (
+          <span className="detect-result__badge">
+            {capitalize(best.className)} {Math.round(best.confidence * 100)}%
           </span>
         )}
       </div>
 
-      {/* What the backend sent back for this photo (coordinates from EXIF/OCR) */}
-      {(item.backend || item.backendError) && (
-        <div className="detect-result__backend">
-          {item.backendError ? (
-            <span className="detect-result__backend--error">Gagal disimpan: {item.backendError}</span>
-          ) : item.backend!.coordinate ? (
-            <span>
-              Lokasi: {item.backend!.coordinate.lat.toFixed(5)}, {item.backend!.coordinate.lon.toFixed(5)}{' '}
-              <span className="detect-result__source">({SOURCE_LABELS[item.backend!.coordinateSource as string] ?? item.backend!.coordinateSource})</span>
-            </span>
-          ) : (
-            <span className="detect-result__backend--muted">Tersimpan, koordinat tidak ditemukan.</span>
-          )}
+      <div className="detect-result__body">
+        <div className="detect-result__summary">
+          <span className="detect-result__name" title={item.fileName}>
+            {item.fileName}
+          </span>
+          <span className={`detect-result__count${detections.length === 0 ? ' detect-result__count--empty' : ''}`}>
+            {detections.length === 0
+              ? 'No Detection'
+              : `${detections.length} Detection${detections.length === 1 ? '' : 's'}`}
+          </span>
         </div>
+
+        {/* What the backend did with this photo */}
+        {item.backendError ? (
+          <p className="detect-result__status detect-result__status--error">Gagal disimpan: {item.backendError}</p>
+        ) : item.backend?.coordinate ? (
+          <p className="detect-result__status">
+            Tersimpan · {item.backend.coordinate.lat.toFixed(5)}, {item.backend.coordinate.lon.toFixed(5)}{' '}
+            <span className="detect-result__source">
+              ({SOURCE_LABELS[item.backend.coordinateSource ?? ''] ?? item.backend.coordinateSource})
+            </span>
+          </p>
+        ) : item.backend ? (
+          <p className="detect-result__status">Tersimpan, koordinat tidak ditemukan.</p>
+        ) : null}
+
+        {needsCoordinate && <ManualCoordinateField backend={item.backend!} onSaved={onBackendUpdate} />}
+      </div>
+    </article>
+  )
+}
+
+// "Tambahkan koordinat..." field. Enter (or Simpan) sends the coordinate to the backend.
+function ManualCoordinateField({
+  backend,
+  onSaved,
+}: {
+  backend: BackendAnalysis
+  onSaved?: (backend: BackendAnalysis) => void
+}) {
+  const hintId = useId()
+  const [text, setText] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (saving) return
+
+    const coordinate = parseLatLon(text)
+    if (!coordinate) {
+      setError('Format koordinat: lat, lon (contoh -6.2018, 106.7829).')
+      return
+    }
+    if (!isWithinRegion(coordinate)) {
+      setError('Koordinat di luar wilayah Indonesia.')
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    try {
+      onSaved?.(await sendManualCoordinate(backend, coordinate))
+    } catch (err) {
+      setError((err as { message?: string })?.message || 'Gagal menyimpan koordinat.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form className="detect-coord" onSubmit={handleSubmit} noValidate>
+      <div className={`detect-coord__box${error ? ' detect-coord__box--error' : ''}`}>
+        <input
+          className="detect-coord__input"
+          type="text"
+          inputMode="decimal"
+          placeholder="Tambahkan koordinat..."
+          aria-label="Koordinat lokasi (lat, lon)"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? hintId : undefined}
+          maxLength={60}
+          value={text}
+          disabled={saving}
+          onChange={(e) => {
+            setText(e.target.value)
+            setError(null)
+          }}
+        />
+        {text.trim() !== '' && (
+          <button type="submit" className="detect-coord__save" disabled={saving}>
+            {saving ? 'Menyimpan...' : 'Simpan'}
+          </button>
+        )}
+      </div>
+      {error && (
+        <p id={hintId} className="detect-coord__error" role="alert">
+          {error}
+        </p>
       )}
-    </div>
+    </form>
   )
 }

@@ -34,7 +34,7 @@ const MAX_SIDE = 2560 // longest side after shrinking an oversized photo
 type MediaId = string | number
 
 // Detection in the shape the backend expects.
-interface PayloadDetection {
+export interface PayloadDetection {
   label: string
   confidence: number
   bbox: { x1: number; y1: number; x2: number; y2: number }
@@ -72,6 +72,9 @@ export interface AnalysisResult {
   totalDetections: number
   totalViolations: number
   unknownLocation: number
+  // The detections exactly as they were sent (scaled to the uploaded image).
+  // Reused when the user adds a coordinate by hand.
+  sentDetections: PayloadDetection[]
 }
 
 export class UploadError extends Error {
@@ -111,11 +114,13 @@ async function shrinkIfTooLarge(file: File): Promise<{ file: File; scale: number
 
 // POSTs a FormData body. Returns { res, json } where json is null if the body
 // isn't JSON (some backend errors come back as an HTML page).
-async function postForm(url: string, body: FormData): Promise<{ res: Response; json: BackendJson | null }> {
+async function postForm(url: string, body: FormData | string): Promise<{ res: Response; json: BackendJson | null }> {
   let res: Response
   try {
-    // Don't set Content-Type: the browser adds the multipart boundary itself.
-    res = await fetch(url, { method: 'POST', body })
+    // FormData: don't set Content-Type, the browser adds the multipart boundary itself.
+    // A string body is JSON.
+    const headers = typeof body === 'string' ? { 'Content-Type': 'application/json' } : undefined
+    res = await fetch(url, { method: 'POST', body, headers })
   } catch (err) {
     throw new UploadError(`tidak bisa terhubung ke server (${BASE_URL}). Cek koneksi atau alamat backend.`, {
       cause: err,
@@ -157,20 +162,28 @@ async function uploadMedia(file: File): Promise<MediaId> {
 }
 
 // Step 2: OCR/EXIF coordinates + zone check + save, using our ONNX detections.
+// Without a file the body is plain JSON; the backend then loads the photo from
+// storage by mediaId (used when the user adds a coordinate by hand).
 async function analyzePhoto({
   mediaId,
   file,
   detections,
-  ocrText,
+  ocrText = null,
+  manualLatLon = null,
 }: {
   mediaId: MediaId
-  file: File
+  file?: File
   detections: PayloadDetection[]
-  ocrText: string | null
+  ocrText?: string | null
+  manualLatLon?: { lat: number; lon: number } | null
 }): Promise<AnalysisResult> {
-  const body = new FormData()
-  body.append('photo', file, file.name)
-  body.append('payload', JSON.stringify({ mediaId, detections, ocrText }))
+  const payload = JSON.stringify({ mediaId, detections, ocrText, manualLatLon })
+  let body: FormData | string = payload
+  if (file) {
+    body = new FormData()
+    body.append('photo', file, file.name)
+    body.append('payload', payload)
+  }
 
   const { res, json } = await postForm(ANALYSIS_ENDPOINT, body)
   if (!json) {
@@ -190,7 +203,25 @@ async function analyzePhoto({
     totalDetections: json.result?.totalDetections ?? 0,
     totalViolations: json.result?.totalViolations ?? 0,
     unknownLocation: json.result?.unknownLocation ?? 0,
+    sentDetections: detections,
   }
+}
+
+// The photo was saved but no coordinate was found (no EXIF GPS, OCR failed):
+// analyse it again with the coordinate the user typed in.
+// Note: the backend stores this as a new analysis for the same mediaId.
+export async function sendManualCoordinate(
+  previous: AnalysisResult,
+  coordinate: { lat: number; lon: number },
+): Promise<AnalysisResult> {
+  if (!BASE_URL) {
+    throw new UploadError('alamat backend belum diatur (VITE_API_BASE_URL di .env).')
+  }
+  return analyzePhoto({
+    mediaId: previous.mediaId,
+    detections: previous.sentDetections,
+    manualLatLon: coordinate,
+  })
 }
 
 // Sends one photo and its ONNX detections to the backend.

@@ -103,12 +103,25 @@ export default function UploadPage() {
     if (status === 'success') dashboardBtnRef.current?.focus()
   }, [status])
 
-  // Free the preview URLs when the results are replaced or the page closes.
+  // Free the preview URLs when photos leave the results (new submit) or the page
+  // closes. Updating one card (e.g. a hand-typed coordinate) keeps its URL alive.
+  const shownUrls = useRef<string[]>([])
   useEffect(() => {
-    return () => {
-      analysisResults.forEach((r) => URL.revokeObjectURL(r.url))
-    }
+    const next = analysisResults.map((r) => r.url)
+    shownUrls.current.filter((u) => !next.includes(u)).forEach((u) => URL.revokeObjectURL(u))
+    shownUrls.current = next
   }, [analysisResults])
+  useEffect(() => () => shownUrls.current.forEach((u) => URL.revokeObjectURL(u)), [])
+
+  // A hand-typed coordinate was saved for one photo: swap in the backend's new response
+  const updateBackend = (url: string, backend: BackendAnalysis) =>
+    setAnalysisResults((items) =>
+      items.map((it) =>
+        it.url === url
+          ? { ...it, backend, result: { ...it.result, violationCount: backend.totalViolations } }
+          : it,
+      ),
+    )
 
   // Submit:
   //   1. Predict every photo with best.onnx in the browser. All results are kept
@@ -320,14 +333,18 @@ export default function UploadPage() {
         {analysisResults.length > 0 && (
           <div className="upload-results">
             <div className="upload-results__head">
-              <h3 className="upload-results__title">Detection Results</h3>
+              <h3 className="upload-results__title">Detection Result</h3>
               <span className="upload-results__count">
                 {totalDetections} total detection{totalDetections === 1 ? '' : 's'}
               </span>
             </div>
             <div className="upload-results__grid">
               {analysisResults.map((item) => (
-                <DetectionResult key={item.url} item={item} />
+                <DetectionResult
+                  key={item.url}
+                  item={item}
+                  onBackendUpdate={(backend) => updateBackend(item.url, backend)}
+                />
               ))}
             </div>
           </div>

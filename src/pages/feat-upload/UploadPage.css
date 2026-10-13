@@ -93,7 +93,7 @@
 
 /* ---------- Detection results ---------- */
 .upload-results {
-  margin-top: 24px;
+  margin-top: 32px;
 }
 
 .upload-results__head {
@@ -101,35 +101,39 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .upload-results__title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--purple-dark);
+  font-size: 26px;
+  font-weight: 700;
+  color: #5b58aa;
 }
 
 .upload-results__count {
   font-size: 13px;
-  color: var(--muted);
+  color: #b4b4c6;
 }
 
+/* Masonry: cards keep the photo's own height and fill columns top to bottom */
 .upload-results__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 18px;
+  columns: 3 240px;
+  column-gap: 24px;
 }
 
 .detect-result {
+  break-inside: avoid;
+  margin-bottom: 24px;
+  padding: 8px 8px 14px;
   background: #fff;
   border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(20, 20, 50, 0.06);
+  box-shadow: 0 6px 20px rgba(20, 20, 50, 0.08);
 }
 
-.detect-result__canvas-wrap {
+.detect-result__media {
   position: relative;
+  border-radius: 10px;
+  overflow: hidden;
   line-height: 0;
   background: #f0f0f6;
 }
@@ -140,26 +144,48 @@
   height: auto;
 }
 
-/* The canvas sits exactly on top of the image and holds the boxes */
-.detect-result__canvas {
+/* Bottom of the photo fades into the white card */
+.detect-result__media::after {
+  content: '';
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
   pointer-events: none;
+}
+
+/* Best detection, e.g. "Gerobak 88%" */
+.detect-result__badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  padding: 6px 12px;
+  border-bottom-right-radius: 10px;
+  background: #5b58aa;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.detect-result__body {
+  padding: 6px 8px 0;
 }
 
 .detect-result__summary {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 14px;
 }
 
 .detect-result__name {
-  font-size: 12px;
-  color: var(--ink);
+  min-width: 0;
+  font-size: 14px;
+  color: #5b58aa;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -167,9 +193,9 @@
 
 .detect-result__count {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: #5a50c3;
+  color: #4b4a9a;
 }
 
 .detect-result__count--empty {
@@ -177,42 +203,103 @@
   font-weight: 500;
 }
 
-/* Backend response line under a result card (coordinates or error) */
-.detect-result__backend {
-  padding: 0 14px 12px;
+/* Backend line: saved / coordinate / error */
+.detect-result__status {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #6d6ab8;
+}
+
+.detect-result__source {
+  color: var(--muted);
+}
+
+.detect-result__status--error {
+  color: #c0392b;
+}
+
+/* ---------- Manual coordinate field ---------- */
+.detect-coord {
+  margin-top: 10px;
+}
+
+.detect-coord__box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px 2px 10px;
+  border: 1px solid #e3e2ee;
+  border-radius: 6px;
+  background: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.detect-coord__box:focus-within {
+  border-color: #b9b5ec;
+  box-shadow: 0 0 0 2px #eeecfb;
+}
+
+.detect-coord__box--error {
+  border-color: #e7a19a;
+}
+
+.detect-coord__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 5px 0;
+  font-family: inherit;
   font-size: 11px;
   color: var(--ink);
 }
 
-.detect-result__source,
-.detect-result__backend--muted {
-  color: var(--muted);
+.detect-coord__input::placeholder {
+  color: #b4b2cf;
 }
 
-.detect-result__backend--error {
+.detect-coord__save {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  background: #5b58aa;
+  color: #fff;
+  padding: 3px 10px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.detect-coord__save:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.detect-coord__save:focus-visible {
+  outline: 2px solid #8f88e6;
+  outline-offset: 2px;
+}
+
+.detect-coord__error {
+  margin-top: 4px;
+  font-size: 10px;
   color: #c0392b;
 }
 
-/* Per-detection labels under a backend result, e.g. "gerobak 94%" */
-.detect-result__list {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 14px 12px;
-}
+@media (max-width: 600px) {
+  .upload-results__title {
+    font-size: 20px;
+  }
 
-.detect-result__list li {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #eeecfb;
-  color: #5a50c3;
-  font-size: 11px;
-  font-weight: 600;
-}
+  .upload-results__grid {
+    column-gap: 16px;
+  }
 
-.detect-result__violations {
-  color: #e0485a;
+  .detect-result {
+    margin-bottom: 16px;
+  }
 }
 
 /* ---------- Errors + selected files ---------- */
