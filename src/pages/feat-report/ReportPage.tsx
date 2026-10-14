@@ -168,8 +168,19 @@ export default function ReportPage() {
                         </span>
                         <a
                           className="report-table__download"
+                          href={backendUrl(`${row.downloadUrl}?inline=1`)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Preview report ${number}`}
+                          title="Preview PDF"
+                        >
+                          <Icon.Eye />
+                        </a>
+                        <a
+                          className="report-table__download"
                           href={backendUrl(row.downloadUrl)}
                           aria-label={`Download report ${number}`}
+                          title="Download PDF"
                         >
                           <Icon.Download />
                         </a>
