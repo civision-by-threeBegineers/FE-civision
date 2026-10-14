@@ -21,6 +21,8 @@ export interface DetectionItem {
   result: { detections: Detection[]; violationCount: number }
   backend?: BackendAnalysis | null
   backendError?: string | null
+  // The photo was taken with the in-app camera and sent with the device's position
+  deviceLocation?: boolean
 }
 
 // How the backend found the coordinates (coordinateSource).
@@ -77,7 +79,11 @@ export function DetectionResult({ item, onBackendUpdate }: DetectionResultProps)
           <p className="detect-result__status">
             Tersimpan · {item.backend.coordinate.lat.toFixed(5)}, {item.backend.coordinate.lon.toFixed(5)}{' '}
             <span className="detect-result__source">
-              ({SOURCE_LABELS[item.backend.coordinateSource ?? ''] ?? item.backend.coordinateSource})
+              (
+              {item.deviceLocation && item.backend.coordinateSource === 'manual'
+                ? 'lokasi perangkat'
+                : (SOURCE_LABELS[item.backend.coordinateSource ?? ''] ?? item.backend.coordinateSource)}
+              )
             </span>
           </p>
         ) : item.backend ? (

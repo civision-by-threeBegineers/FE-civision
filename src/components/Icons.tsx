@@ -125,6 +125,32 @@ function Camera() {
   )
 }
 
+function Pin() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+      <path d="M12 21s7-6.2 7-11.5A7 7 0 005 9.5C5 14.8 12 21 12 21Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <circle cx="12" cy="9.5" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function Edit() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+      <path d="M4 20h4L19 9a2.1 2.1 0 00-3-3L5 17v3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M14 8l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function ChevronDown() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+      <path d="M6 9.5l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 function Minus() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
@@ -276,6 +302,9 @@ export const Icon = {
   ArrowRight,
   Plus,
   Camera,
+  Pin,
+  Edit,
+  ChevronDown,
   Minus,
   TriangleDown,
   Close,

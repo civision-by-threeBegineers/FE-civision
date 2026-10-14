@@ -147,75 +147,21 @@
   padding: 4px;
 }
 
-/* Table. The card scrolls inside itself when the screen is too short,
-   so the page itself never has to scroll. */
-.table-card {
-  min-height: 0;
-  overflow-y: auto;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(20, 20, 50, 0.06);
-}
+/* The reports table itself is styled in feat-report/ReportTable.css (shared with Report Details). */
 
-.table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-size: 13px;
-  color: #5b58aa;
-}
+/* Fit-screen layout (same condition as AppLayout.css): the row under the banner
+   takes all the height that is left, so the table scrolls inside its own box
+   (pagination stays visible under it) and the map is as tall as the table. */
+@media (min-width: 901px) and (min-height: 560px) {
+  .content {
+    flex: 1 1 0;
+    min-height: 0;
+  }
 
-.table th {
-  position: sticky;     /* header stays visible when the card scrolls */
-  top: 0;
-  background: #fff;
-  text-align: left;
-  font-weight: 500;
-  padding: 16px 12px;
-}
-
-.table th:nth-child(1) {
-  width: 42%;
-}
-
-.table th:nth-child(2) {
-  width: 30%;
-}
-
-.table td {
-  padding: 7px 12px;
-}
-
-.table th:first-child,
-.table td:first-child {
-  padding-left: 40px;
-}
-
-/* Striped rows like the design: 1st, 3rd, 5th... are light purple */
-.table tbody tr:nth-child(odd) {
-  background: #efeef8;
-}
-
-.table__location {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.status--valid .status__dot {
-  background: #4caf50;
+  .review > .report-table-block {
+    flex: 1 1 0;
+    min-height: 0;
+  }
 }
 
 /* Map preview: one big button that opens the full-screen map */
@@ -292,11 +238,6 @@
   .content {
     margin-top: 22px;
   }
-
-  .table th {
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
 }
 
 /* Phones: officer stays on the right of the banner, text on the left */
@@ -340,23 +281,6 @@
 
   .map {
     aspect-ratio: 3 / 2;
-  }
-
-  .table {
-    font-size: 11px;
-  }
-
-  .table th {
-    padding: 14px 8px;
-  }
-
-  .table td {
-    padding: 8px;
-  }
-
-  .table th:first-child,
-  .table td:first-child {
-    padding-left: 14px;
   }
 }
 

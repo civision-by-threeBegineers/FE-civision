@@ -5,18 +5,16 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { ViolationMap } from '../feat-maps/ViolationMap'
 import { useMapData } from '../feat-maps/useMapData'
 import { filterByTimeRange } from '../../services/dashboard/mapData'
+import { ReportTable } from '../feat-report/ReportTable'
+import { useReports } from '../feat-report/useReports'
 import Officer from '../../assets/officer-dashboard.png'
 import './Dashboard.css'
 
-/* ---------- Mock table data ---------- */
-const REVIEW_ROWS = Array.from({ length: 6 }, () => ({
-  location: 'Jl. Jati Baru Raya',
-  timestamp: '13:19:27',
-  status: 'Valid',
-}))
+const REVIEW_ROWS_PER_PAGE = 10
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const reports = useReports(REVIEW_ROWS_PER_PAGE)
   const location = useLocation()
   const mapPreviewRef = useRef<HTMLDivElement>(null)
   const { violations, zones, error: mapError } = useMapData()
@@ -67,32 +65,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* The card scrolls inside itself when the screen is too short */}
-          <div className="table-card">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th scope="col">Location</th>
-                  <th scope="col">Timestamp</th>
-                  <th scope="col">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {REVIEW_ROWS.map((row, i) => (
-                  <tr key={i}>
-                    <td className="table__location">{row.location}</td>
-                    <td>{row.timestamp}</td>
-                    <td>
-                      <span className="status status--valid">
-                        <span className="status__dot" />
-                        {row.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Same table as Report Details (real data, paging, verification).
+              It scrolls inside this column when the screen is too short. */}
+          <ReportTable reports={reports} />
         </div>
 
         {/* Static map preview. Clicking it (or Enter/Space) opens the full-screen map. */}

@@ -10,6 +10,7 @@ import {
   type DetectionItem,
 } from './DetectionResult'
 import { CameraCapture } from './CameraCapture'
+import { formatCoordinate, type DeviceLocation } from '../../services/upload/deviceLocation'
 import { ensureModelReady, detectObjects, ModelLoadError } from '../../services/yolo/yoloInference'
 import { sendPhotoToBackend } from '../../services/upload/uploadPhotos'
 import './UploadPage.css'
@@ -92,6 +93,8 @@ export default function UploadPage() {
   const [errors, setErrors] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [cameraOpen, setCameraOpen] = useState(false)
+  // Device position saved with each photo taken by the in-app camera (keyed by the File)
+  const [photoLocations] = useState(() => new WeakMap<File, DeviceLocation>())
   const [status, setStatus] = useState<Status>('idle')
   const [analysisResults, setAnalysisResults] = useState<DetectionItem[]>([]) // DetectionResult items
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null) // { done, total }
@@ -179,8 +182,13 @@ export default function UploadPage() {
       const prediction = predictions[i]
       let backend: BackendAnalysis | null = null
       let backendError: string | null = null
+      const deviceLocation = photoLocations.get(prediction.file)
       try {
-        backend = await sendPhotoToBackend(prediction.file, prediction.detections)
+        backend = await sendPhotoToBackend(
+          prediction.file,
+          prediction.detections,
+          deviceLocation ? { lat: deviceLocation.lat, lon: deviceLocation.lon } : null,
+        )
       } catch (err) {
         backendError = friendlyError(err)
         newErrors.push(`${prediction.file.name}: ${backendError}`)
@@ -196,6 +204,7 @@ export default function UploadPage() {
         },
         backend,
         backendError,
+        deviceLocation: Boolean(deviceLocation),
       })
       setProgress({ done: i + 1, total: predictions.length })
     }
@@ -290,7 +299,13 @@ export default function UploadPage() {
             </button>
           </div>
           {cameraOpen && (
-            <CameraCapture onCapture={(file) => addFiles([file])} onClose={() => setCameraOpen(false)} />
+            <CameraCapture
+              onCapture={(file, location) => {
+                if (location) photoLocations.set(file, location)
+                addFiles([file])
+              }}
+              onClose={() => setCameraOpen(false)}
+            />
           )}
           {/* Hidden file picker, opened by the Add Files button */}
           <input
@@ -314,7 +329,15 @@ export default function UploadPage() {
             <ul className="upload-files" aria-label="Selected files">
               {files.map((file) => (
                 <li key={`${file.name}-${file.size}-${file.lastModified}`} className="upload-file">
-                  <span className="upload-file__name">{file.name}</span>
+                  <span className="upload-file__name">
+                    {file.name}
+                    {photoLocations.has(file) && (
+                      <span className="upload-file__geo" title="Lokasi perangkat saat foto diambil">
+                        <Icon.Pin />
+                        {formatCoordinate(photoLocations.get(file)!.lat, photoLocations.get(file)!.lon)}
+                      </span>
+                    )}
+                  </span>
                   <span className="upload-file__size">{formatSize(file.size)}</span>
                   <button
                     type="button"

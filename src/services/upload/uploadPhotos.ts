@@ -227,7 +227,13 @@ export async function sendManualCoordinate(
 // Sends one photo and its ONNX detections to the backend.
 // detections: output of detectObjects() (bbox in original-image pixels).
 // Resolves to the backend's analysis result (see analyzePhoto above).
-export async function sendPhotoToBackend(file: File, detections: Detection[]): Promise<AnalysisResult> {
+// location: the device position, for photos taken with the in-app camera (they have
+// no GPS EXIF). The backend only uses it when EXIF and OCR find no coordinate.
+export async function sendPhotoToBackend(
+  file: File,
+  detections: Detection[],
+  location: { lat: number; lon: number } | null = null,
+): Promise<AnalysisResult> {
   if (!BASE_URL) {
     throw new UploadError('alamat backend belum diatur (VITE_API_BASE_URL di .env).')
   }
@@ -249,5 +255,11 @@ export async function sendPhotoToBackend(file: File, detections: Detection[]): P
 
   // OCR the original photo (sharpest text) while the upload runs. It never throws.
   const [mediaId, ocrText] = await Promise.all([uploadMedia(toSend), readOverlayText(file)])
-  return analyzePhoto({ mediaId, file: toSend, detections: payloadDetections, ocrText })
+  return analyzePhoto({
+    mediaId,
+    file: toSend,
+    detections: payloadDetections,
+    ocrText,
+    manualLatLon: location ? { lat: location.lat, lon: location.lon } : null,
+  })
 }
