@@ -116,6 +116,15 @@ function Plus() {
   )
 }
 
+function Camera() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+      <path d="M4 8a2 2 0 012-2h2l1.5-2h5L16 6h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V8Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <circle cx="12" cy="12.5" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
 function Minus() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
@@ -266,6 +275,7 @@ export const Icon = {
   Download,
   ArrowRight,
   Plus,
+  Camera,
   Minus,
   TriangleDown,
   Close,

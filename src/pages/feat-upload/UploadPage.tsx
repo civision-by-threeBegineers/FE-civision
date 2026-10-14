@@ -9,6 +9,7 @@ import {
   type Detection,
   type DetectionItem,
 } from './DetectionResult'
+import { CameraCapture } from './CameraCapture'
 import { ensureModelReady, detectObjects, ModelLoadError } from '../../services/yolo/yoloInference'
 import { sendPhotoToBackend } from '../../services/upload/uploadPhotos'
 import './UploadPage.css'
@@ -34,7 +35,7 @@ function formatSize(bytes: number) {
 }
 
 // Splits the picked/dropped files into accepted files and error messages for the rest.
-function checkFiles(fileList: FileList) {
+function checkFiles(fileList: Iterable<File>) {
   const accepted: File[] = []
   const errors: string[] = []
 
@@ -90,6 +91,7 @@ export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([])
   const [errors, setErrors] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [cameraOpen, setCameraOpen] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
   const [analysisResults, setAnalysisResults] = useState<DetectionItem[]>([]) // DetectionResult items
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null) // { done, total }
@@ -214,7 +216,8 @@ export default function UploadPage() {
     setStatus('success')
   }
 
-  const addFiles = (fileList: FileList) => {
+  // From the file picker, drag & drop, or the camera
+  const addFiles = (fileList: Iterable<File>) => {
     const { accepted, errors: newErrors } = checkFiles(fileList)
     setErrors(newErrors)
     // Skip files that are already in the list
@@ -267,14 +270,28 @@ export default function UploadPage() {
           <h2 className="upload-dropzone__title">Drop Your Photos!</h2>
           <p className="upload-dropzone__hint">*Accepted formats: JPG, PNG (Max 10MB per file)</p>
 
-          <button
-            type="button"
-            className="upload-dropzone__btn"
-            onClick={() => inputRef.current!.click()}
-          >
-            <Icon.Plus />
-            Add Files
-          </button>
+          <div className="upload-dropzone__buttons">
+            <button
+              type="button"
+              className="upload-dropzone__btn"
+              onClick={() => inputRef.current!.click()}
+            >
+              <Icon.Plus />
+              Add Files
+            </button>
+            {/* Take a photo with the device camera (WebRTC getUserMedia) */}
+            <button
+              type="button"
+              className="upload-dropzone__btn upload-dropzone__btn--secondary desktop"
+              onClick={() => setCameraOpen(true)}
+            >
+              <Icon.Camera />
+              Use Camera
+            </button>
+          </div>
+          {cameraOpen && (
+            <CameraCapture onCapture={(file) => addFiles([file])} onClose={() => setCameraOpen(false)} />
+          )}
           {/* Hidden file picker, opened by the Add Files button */}
           <input
             ref={inputRef}
