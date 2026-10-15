@@ -426,33 +426,14 @@
   height: auto;
 }
 
-/* Bottom of the photo fades into the white card */
-.detect-result__media::after {
-  content: '';
+/* The AI's boxes sit exactly on top of the photo (drawn by DetectionResult.tsx) */
+.detect-result__canvas {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 28%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
-
-/* Best detection, e.g. "Gerobak 88%" */
-.detect-result__badge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  padding: 6px 12px;
-  border-bottom-right-radius: 10px;
-  background: #5b58aa;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
 .detect-result__body {
   padding: 6px 8px 0;
 }

@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { sendManualCoordinate, type AnalysisResult } from '../../services/upload/uploadPhotos'
 import { isWithinRegion, parseLatLon } from '../../services/upload/manualCoordinate'
 
@@ -40,24 +40,85 @@ interface DetectionResultProps {
   onBackendUpdate?: (backend: BackendAnalysis) => void
 }
 
-// One analysed photo: the image with its best detection as a badge, the file name,
-// the detection count, and what the backend did with it. If the backend saved the
-// photo but couldn't find a coordinate (no GPS, OCR failed), a field lets the user
-// type the coordinate in.
+// One analysed photo: the original photo with the AI's detections drawn on it (a box
+// and a "Gerobak 88%" label on each detection), the file name, the detection count,
+// and what the backend did with it. If the backend saved the photo but couldn't find
+// a coordinate (no GPS, OCR failed), a field lets the user type the coordinate in.
 export function DetectionResult({ item, onBackendUpdate }: DetectionResultProps) {
   const { detections } = item.result
-  const best = detections.reduce<Detection | null>((a, d) => (!a || d.confidence > a.confidence ? d : a), null)
   const needsCoordinate = Boolean(item.backend && !item.backend.coordinate)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  // Bumped when the photo finishes loading, so the boxes are drawn at the right size
+  const [loadedTick, setLoadedTick] = useState(0)
+
+  // Draw the detections on top of the photo. bbox values are in ORIGINAL-image pixels,
+  // so they are scaled to the size the photo is shown at. Redrawn when that size changes.
+  useEffect(() => {
+    const img = imgRef.current
+    const canvas = canvasRef.current
+    if (!img || !canvas) return
+
+    const draw = () => {
+      const { width, height } = img.getBoundingClientRect()
+      if (!width || !height) return
+
+      // Crisp lines and text on high-density screens
+      const dpr = window.devicePixelRatio || 1
+      canvas.width = Math.round(width * dpr)
+      canvas.height = Math.round(height * dpr)
+      const ctx = canvas.getContext('2d')!
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.clearRect(0, 0, width, height)
+
+      const sx = width / item.imageSize.width
+      const sy = height / item.imageSize.height
+
+      for (const d of detections) {
+        const x = d.bbox.x1 * sx
+        const y = d.bbox.y1 * sy
+        const w = (d.bbox.x2 - d.bbox.x1) * sx
+        const h = (d.bbox.y2 - d.bbox.y1) * sy
+
+        // Red for a flagged violation, purple for a plain detection
+        const color = d.isViolation ? '#e0485a' : '#5a50c3'
+        ctx.lineWidth = 2
+        ctx.strokeStyle = color
+        ctx.strokeRect(x, y, w, h)
+
+        // Label on the box itself: "Gerobak 88%"
+        const label = `${capitalize(d.className)} ${Math.round(d.confidence * 100)}%`
+        ctx.font = '600 12px Poppins, system-ui, sans-serif'
+        const labelW = ctx.measureText(label).width + 12
+        const labelH = 18
+        const labelX = Math.min(Math.max(x - 1, 0), Math.max(width - labelW, 0)) // keep inside the photo
+        const labelY = y - labelH >= 0 ? y - labelH : y // above the box, or inside it at the very top
+        ctx.fillStyle = color
+        ctx.fillRect(labelX, labelY, labelW, labelH)
+        ctx.fillStyle = '#fff'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(label, labelX + 6, labelY + labelH / 2 + 0.5)
+      }
+    }
+
+    draw()
+    const observer = new ResizeObserver(draw)
+    observer.observe(img)
+    return () => observer.disconnect()
+  }, [detections, item.imageSize, loadedTick])
 
   return (
     <article className="detect-result">
       <div className="detect-result__media">
-        <img className="detect-result__img" src={item.url} alt={item.fileName} />
-        {best && (
-          <span className="detect-result__badge">
-            {capitalize(best.className)} {Math.round(best.confidence * 100)}%
-          </span>
-        )}
+        <img
+          ref={imgRef}
+          className="detect-result__img"
+          src={item.url}
+          alt={item.fileName}
+          onLoad={() => setLoadedTick((t) => t + 1)}
+        />
+        {/* The AI's boxes, drawn over the photo */}
+        <canvas ref={canvasRef} className="detect-result__canvas" aria-hidden="true" />
       </div>
 
       <div className="detect-result__body">
