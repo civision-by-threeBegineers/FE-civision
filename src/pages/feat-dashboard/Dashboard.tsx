@@ -5,16 +5,17 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { ViolationMap } from '../feat-maps/ViolationMap'
 import { useMapData } from '../feat-maps/useMapData'
 import { filterByTimeRange } from '../../services/dashboard/mapData'
-import { ReportTable } from '../feat-report/ReportTable'
+import { ReviewTable } from './ReviewTable'
 import { useReports } from '../feat-report/useReports'
 import Officer from '../../assets/officer-dashboard.png'
 import './Dashboard.css'
 
-const REVIEW_ROWS_PER_PAGE = 10
+// The Review Progress table shows the 6 latest reports (as in the design)
+const REVIEW_ROWS = 6
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const reports = useReports(REVIEW_ROWS_PER_PAGE)
+  const reports = useReports(REVIEW_ROWS)
   const location = useLocation()
   const mapPreviewRef = useRef<HTMLDivElement>(null)
   const { violations, zones, error: mapError } = useMapData()
@@ -65,9 +66,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Same table as Report Details (real data, paging, verification).
-              It scrolls inside this column when the screen is too short. */}
-          <ReportTable reports={reports} />
+          {/* Latest reports, from the same source as Report Details.
+              The card scrolls inside itself when the screen is too short. */}
+          <ReviewTable reports={reports} />
         </div>
 
         {/* Static map preview. Clicking it (or Enter/Space) opens the full-screen map. */}

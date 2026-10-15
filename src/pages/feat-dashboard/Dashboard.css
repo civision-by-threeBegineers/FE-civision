@@ -147,21 +147,103 @@
   padding: 4px;
 }
 
-/* The reports table itself is styled in feat-report/ReportTable.css (shared with Report Details). */
+/* Review Progress table: a white card with Location, Timestamp and Status. The card
+   scrolls inside itself when the screen is too short, so the page never has to scroll. */
+.table-card {
+  min-height: 0;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(20, 20, 50, 0.06);
+}
 
-/* Fit-screen layout (same condition as AppLayout.css): the row under the banner
-   takes all the height that is left, so the table scrolls inside its own box
-   (pagination stays visible under it) and the map is as tall as the table. */
-@media (min-width: 901px) and (min-height: 560px) {
-  .content {
-    flex: 1 1 0;
-    min-height: 0;
-  }
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #5b58aa;
+}
 
-  .review > .report-table-block {
-    flex: 1 1 0;
-    min-height: 0;
-  }
+.table th {
+  position: sticky;     /* header stays visible when the card scrolls */
+  top: 0;
+  background: #fff;
+  text-align: left;
+  font-weight: 500;
+  padding: 16px 12px;
+}
+
+.table th:nth-child(1) {
+  width: 42%;
+}
+
+.table th:nth-child(2) {
+  width: 30%;
+}
+
+.table td {
+  padding: 7px 12px;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: 40px;
+}
+
+/* Striped rows like the design: 1st, 3rd, 5th... are light purple */
+.table tbody tr:nth-child(odd) {
+  background: #efeef8;
+}
+
+.table__location {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Loading / error / empty message that takes the place of the rows */
+.table__state {
+  padding: 28px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: #9aa0b4;
+}
+
+.table__retry {
+  margin-left: 10px;
+  border: none;
+  border-radius: 999px;
+  background: #5a4fcf;
+  color: #fff;
+  padding: 4px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status--valid .status__dot {
+  background: #4caf50;
+}
+
+.status--invalid .status__dot {
+  background: #e0485a;
+}
+
+.status--unverified .status__dot {
+  background: #b4b4c6;
 }
 
 /* Map preview: one big button that opens the full-screen map */
@@ -201,8 +283,11 @@
 
 /* ---------- Responsive ---------- */
 @media (min-width: 901px) {
-  /* Side by side, the map just matches the height of the table column */
+  /* Side by side. The map has a fixed height and sits at the top of its column,
+     so it no longer grows or shrinks with the Review Progress table. */
   .map {
+    align-self: start;
+    height: 280px;
     min-height: 0;
   }
 }
@@ -237,6 +322,11 @@
 
   .content {
     margin-top: 22px;
+  }
+
+  .table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
 }
 
@@ -281,6 +371,23 @@
 
   .map {
     aspect-ratio: 3 / 2;
+  }
+
+  .table {
+    font-size: 11px;
+  }
+
+  .table th {
+    padding: 14px 8px;
+  }
+
+  .table td {
+    padding: 8px;
+  }
+
+  .table th:first-child,
+  .table td:first-child {
+    padding-left: 14px;
   }
 }
 
