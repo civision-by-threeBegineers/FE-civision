@@ -7,6 +7,8 @@ import ProfilePage from './pages/feat-profile/ProfilePage'
 import HelpPage from './pages/feat-help/HelpPage'
 import MapPage from './pages/feat-maps/MapPage'
 import NotificationPage from './pages/feat-notification/NotificationPage'
+import ModelDiagnostic from './pages/model-diagnostic'
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -19,6 +21,7 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/notifications" element={<NotificationPage />} />
+        <Route path="/model-diagnostic" element={<ModelDiagnostic />} />
       </Routes>
     </BrowserRouter>
   )
