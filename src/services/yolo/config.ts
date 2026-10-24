@@ -13,8 +13,8 @@ export const YOLO_CONFIG = {
   inputName: 'images',
   inputWidth: 640,
   inputHeight: 640,
-  confidenceThreshold: 0.25,
-  nmsIoUThreshold: 0.45,
+  confidenceThreshold: 0.5,
+  nmsIoUThreshold: 0.4,
   paddingValue: 114,
   classNames: {
     0: 'gerobak',
