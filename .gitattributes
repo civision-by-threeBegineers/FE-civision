@@ -1,0 +1,16 @@
+# Treat these as binary: never convert line endings, never diff/merge as text.
+# Without this, Git's CRLF<->LF conversion corrupts binary files on checkout
+# (e.g. best.onnx grew from 9.34 MB to 16.81 MB and failed to parse on deploy).
+*.onnx binary
+*.wasm binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
