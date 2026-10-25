@@ -103,6 +103,30 @@ export function formatDateTime(iso: string | null) {
   return `${date}, ${time}`
 }
 
+// Same format as the Report page (backend formatJakarta): "17/08/2026" and "14:30:05", Asia/Jakarta.
+const JAKARTA_PARTS = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Jakarta',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+})
+export function formatReportDateTime(iso: string | null): { date: string; timestamp: string } {
+  const d = iso ? new Date(iso) : null
+  if (!d || Number.isNaN(d.getTime())) return { date: '-', timestamp: '-' }
+  const p = Object.fromEntries(JAKARTA_PARTS.formatToParts(d).map((x) => [x.type, x.value]))
+  return { date: `${p.day}/${p.month}/${p.year}`, timestamp: `${p.hour}:${p.minute}:${p.second}` }
+}
+
+// After a status change: the marker keeps its place in the list with the new status.
+// (The map page hides 'invalid' ones; keeping them lets the officer undo from the panel.)
+export function applyMarkerStatus(items: MapViolation[], id: string, status: ViolationStatus) {
+  return items.map((v) => (v.id === id ? { ...v, status } : v))
+}
+
 /* ---------- Zones (forbidden areas) ---------- */
 
 // GET /api/zones -> { ok: true, zones: [{ id, name, points: [[lng, lat], ...] }] }

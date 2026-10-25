@@ -33,7 +33,7 @@ function letterbox(source: ImageSource, targetW: number, targetH: number, padVal
   const srcH = (s.naturalHeight || s.videoHeight || s.height) as number
 
   if (!srcW || !srcH) {
-    throw new Error('The image has no dimensions yet. Wait for it to finish loading.')
+    throw new Error('gambar belum selesai dimuat, coba lagi.')
   }
 
   // Single scale factor for both axes keeps the aspect ratio.

@@ -128,8 +128,8 @@ export function DetectionResult({ item, onBackendUpdate }: DetectionResultProps)
           </span>
           <span className={`detect-result__count${detections.length === 0 ? ' detect-result__count--empty' : ''}`}>
             {detections.length === 0
-              ? 'No Detection'
-              : `${detections.length} Detection${detections.length === 1 ? '' : 's'}`}
+              ? 'Tidak Ada Deteksi'
+              : `${detections.length} Deteksi`}
           </span>
         </div>
 

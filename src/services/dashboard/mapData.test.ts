@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import {
+  applyMarkerStatus,
   filterByTimeRange,
+  formatReportDateTime,
   searchByAddress,
   toMapViolations,
   toMapZones,
@@ -111,5 +113,23 @@ describe('toMapViolations', () => {
 
   it('rejects a response without a marker list', () => {
     expect(() => toMapViolations({ ok: true })).toThrow()
+  })
+})
+
+describe('panel helpers', () => {
+  it('formats like the Report page in Asia/Jakarta, "-" when missing', () => {
+    expect(formatReportDateTime('2026-08-17T07:05:09Z')).toEqual({ date: '17/08/2026', timestamp: '14:05:09' })
+    expect(formatReportDateTime('2026-08-17T17:00:00Z')).toEqual({ date: '18/08/2026', timestamp: '00:00:00' })
+    expect(formatReportDateTime(null)).toEqual({ date: '-', timestamp: '-' })
+    expect(formatReportDateTime('bukan tanggal')).toEqual({ date: '-', timestamp: '-' })
+  })
+
+  it('applyMarkerStatus changes only the target and keeps it in the list', () => {
+    const base = { lat: 0, lng: 0, address: null, createdAt: null, photoUrl: null }
+    const items: MapViolation[] = [{ id: 'a', status: 'unverified', ...base }, { id: 'b', status: 'valid', ...base }]
+    const next = applyMarkerStatus(items, 'a', 'invalid')
+    expect(next.map((v) => [v.id, v.status])).toEqual([['a', 'invalid'], ['b', 'valid']])
+    expect(next[1]).toBe(items[1])
+    expect(items[0].status).toBe('unverified')
   })
 })

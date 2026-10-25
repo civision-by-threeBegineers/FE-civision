@@ -10,10 +10,10 @@ import './ReportPage.css'
 const ROWS_PER_PAGE = 10
 
 const STAT_CARDS: { key: keyof ReportStats; label: string }[] = [
-  { key: 'total', label: 'Total Reports' },
-  { key: 'valid', label: 'Valid Reports' },
-  { key: 'invalid', label: 'Invalid Reports' },
-  { key: 'unverified', label: 'Unverified Reports' },
+  { key: 'total', label: 'Total Laporan' },
+  { key: 'valid', label: 'Laporan Valid' },
+  { key: 'invalid', label: 'Laporan Tidak Valid' },
+  { key: 'unverified', label: 'Laporan Belum Diverifikasi' },
 ]
 
 export default function ReportPage() {
@@ -21,7 +21,7 @@ export default function ReportPage() {
   const { data } = reports
 
   return (
-    <AppLayout title="Report Details">
+    <AppLayout title="Detail Laporan">
       {/* Stats card + officer. The numbers follow along when a report is verified. */}
       <section className="report-hero">
         <div className="report-stats">

@@ -156,7 +156,7 @@ async function uploadMedia(file: File): Promise<MediaId> {
   const mediaId = json.data?.media?.[0]?.id
   if (!res.ok || !mediaId) {
     const reason = json.error || json.data?.errors?.[0]?.error
-    throw new UploadError(reason || `upload gagal (HTTP ${res.status}).`, { status: res.status })
+    throw new UploadError(reason || `unggah gagal (HTTP ${res.status}).`, { status: res.status })
   }
   return mediaId
 }

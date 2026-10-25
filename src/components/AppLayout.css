@@ -77,6 +77,13 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 
+/* Same size for every nav icon (Icon.Pin is drawn at 14px) */
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
 .nav-item:hover {
   background: #f6f5fd;
   color: var(--purple);

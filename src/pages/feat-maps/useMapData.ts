@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getMapData, getZones, type MapViolation, type MapZone } from '../../services/dashboard/mapData'
+import {
+  applyMarkerStatus,
+  getMapData,
+  getZones,
+  type MapViolation,
+  type MapZone,
+  type ViolationStatus,
+} from '../../services/dashboard/mapData'
 
 // Loads the violation markers and the forbidden zones once per mount. retry() fetches again.
 // Zones are drawn on top of the map only; if they fail to load, the markers still show.
@@ -35,5 +42,10 @@ export function useMapData() {
   }, [attempt])
 
   const retry = useCallback(() => setAttempt((a) => a + 1), [])
-  return { violations, zones, loading, error, retry }
+  // Local update after a successful status change, so the map follows without a reload
+  const updateStatus = useCallback(
+    (id: string, status: ViolationStatus) => setViolations((list) => applyMarkerStatus(list, id, status)),
+    [],
+  )
+  return { violations, zones, loading, error, retry, updateStatus }
 }

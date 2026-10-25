@@ -2,12 +2,7 @@ import { useEffect, useRef, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '../../components/Icons'
 import type { ReportRow, ReportStatus } from '../../services/report/getReports'
-
-const STATUS_BUTTONS: { status: ReportStatus; label: string }[] = [
-  { status: 'valid', label: 'Valid' },
-  { status: 'invalid', label: 'Invalid' },
-  { status: 'unverified', label: 'Unverified' },
-]
+import { ReportStatusDetails } from './ReportStatusDetails'
 
 interface EditReportDialogProps {
   row: ReportRow
@@ -81,7 +76,7 @@ export function EditReportDialog({ row, number, saving, error, onChangeStatus, o
       >
         <div className="edit-report__head">
           <h2 id="edit-report-title" className="edit-report__title">
-            Edit Report
+            Ubah Status Laporan
           </h2>
           <button
             type="button"
@@ -94,68 +89,13 @@ export function EditReportDialog({ row, number, saving, error, onChangeStatus, o
           </button>
         </div>
 
-        <dl className="edit-report__fields">
-          <div className="edit-report__field">
-            <dt>ID Report</dt>
-            <dd>
-              {number} / {row.id}
-            </dd>
-          </div>
-          <div className="edit-report__field">
-            <dt>Location</dt>
-            <dd>{row.location}</dd>
-          </div>
-          <div className="edit-report__field">
-            <dt>Coordinate</dt>
-            <dd>
-              {row.coordinate.lat.toFixed(5)}, {row.coordinate.lng.toFixed(5)}
-            </dd>
-          </div>
-          <div className="edit-report__field">
-            <dt>Date</dt>
-            <dd>{row.date}</dd>
-          </div>
-          <div className="edit-report__field">
-            <dt>Timestamp</dt>
-            <dd>{row.timestamp}</dd>
-          </div>
-          <div className="edit-report__field">
-            <dt>Media</dt>
-            <dd>
-              {row.mediaUrl ? (
-                <a href={row.mediaUrl} target="_blank" rel="noopener noreferrer">
-                  {row.mediaName || row.mediaUrl}
-                </a>
-              ) : (
-                '-'
-              )}
-            </dd>
-          </div>
-        </dl>
-
-        {error && (
-          <p className="edit-report__error" role="alert">
-            Gagal memperbarui status: {error}
-          </p>
-        )}
-
-        <div className="edit-report__actions" role="group" aria-label="Ubah status laporan">
-          {STATUS_BUTTONS.map(({ status, label }) => (
-            <button
-              key={status}
-              type="button"
-              className={`edit-report__btn edit-report__btn--${status}`}
-              aria-pressed={row.status === status}
-              disabled={saving}
-              onClick={() => row.status !== status && onChangeStatus(status)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <p className="edit-report__hint" aria-live="polite">
-          {saving ? 'Menyimpan...' : `Status saat ini: ${row.status}`}
-        </p>
+        <ReportStatusDetails
+          idText={`${number} / ${row.id}`}
+          row={row}
+          saving={saving}
+          error={error}
+          onChangeStatus={onChangeStatus}
+        />
       </div>
     </div>,
     document.body,

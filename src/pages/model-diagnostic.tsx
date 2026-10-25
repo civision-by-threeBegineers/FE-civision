@@ -39,7 +39,7 @@ function describeError(err: unknown): string {
     }
     depth++
   }
-  return parts.join('\n  ↳ caused by: ')
+  return parts.join('\n  ↳ disebabkan oleh: ')
 }
 
 interface BackendResult {
@@ -66,7 +66,7 @@ export default function ModelDiagnostic() {
       try {
         const res = await fetch(YOLO_CONFIG.modelPath)
         if (!res.ok) {
-          setFileError(`HTTP ${res.status} fetching ${YOLO_CONFIG.modelPath}`)
+          setFileError(`HTTP ${res.status} saat mengambil ${YOLO_CONFIG.modelPath}`)
           setStatus('done')
           return
         }
@@ -83,7 +83,7 @@ export default function ModelDiagnostic() {
         setMagicBytes(`${hex}  (content-type: ${contentType || 'none'})`)
 
         if (buf[0] === 0x3c) {
-          setFileError('File starts with "<" — server returned HTML, not an ONNX model.')
+          setFileError('File diawali "<": server mengembalikan HTML, bukan model ONNX.')
           setStatus('done')
           return
         }
@@ -119,7 +119,7 @@ export default function ModelDiagnostic() {
           collected.push({
             backend,
             ok: true,
-            detail: 'Session created successfully.',
+            detail: 'Sesi berhasil dibuat.',
             inputNames: session.inputNames.join(', '),
             outputNames: session.outputNames.join(', '),
           })
@@ -144,30 +144,30 @@ export default function ModelDiagnostic() {
 
   return (
     <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', maxWidth: 720 }}>
-      <h1>Model Diagnostic</h1>
-      <p>Loads <code>{YOLO_CONFIG.modelPath}</code> directly through ONNX Runtime and shows the raw error.</p>
+      <h1>Diagnostik Model</h1>
+      <p>Memuat <code>{YOLO_CONFIG.modelPath}</code> langsung lewat ONNX Runtime dan menampilkan error aslinya.</p>
 
       <div style={{ marginTop: 16, padding: 16, borderRadius: 8, background: status === 'checking' ? '#fff3cd' : anyOk ? '#d4edda' : '#f8d7da' }}>
         <strong>Status:</strong>{' '}
-        {status === 'checking' ? '⏳ Checking...' : anyOk ? '✅ Model loaded' : '❌ Model failed to load'}
+        {status === 'checking' ? '⏳ Memeriksa...' : anyOk ? '✅ Model berhasil dimuat' : '❌ Model gagal dimuat'}
       </div>
 
       <table style={{ marginTop: 24, width: '100%', borderCollapse: 'collapse' }}>
         <tbody>
           <tr>
-            <td style={cell}><strong>File size</strong></td>
+            <td style={cell}><strong>Ukuran file</strong></td>
             <td style={cell}>{sizeMB} MB</td>
           </tr>
           <tr>
-            <td style={cell}><strong>First bytes</strong></td>
+            <td style={cell}><strong>Byte awal</strong></td>
             <td style={cell}><code>{magicBytes || '—'}</code></td>
           </tr>
           <tr>
-            <td style={cell}><strong>WebGPU available</strong></td>
-            <td style={cell}>{webgpuAvailable === null ? '—' : webgpuAvailable ? 'yes' : 'no'}</td>
+            <td style={cell}><strong>WebGPU tersedia</strong></td>
+            <td style={cell}>{webgpuAvailable === null ? '—' : webgpuAvailable ? 'ya' : 'tidak'}</td>
           </tr>
           <tr>
-            <td style={cell}><strong>Expected input name</strong></td>
+            <td style={cell}><strong>Nama input yang diharapkan</strong></td>
             <td style={cell}><code>{YOLO_CONFIG.inputName}</code> ({YOLO_CONFIG.inputWidth}x{YOLO_CONFIG.inputHeight})</td>
           </tr>
         </tbody>
@@ -175,20 +175,20 @@ export default function ModelDiagnostic() {
 
       {fileError && (
         <div style={{ marginTop: 24, padding: 16, background: '#f8d7da', borderRadius: 8, color: '#721c24' }}>
-          <strong>File error:</strong>
+          <strong>Error file:</strong>
           <pre style={pre}>{fileError}</pre>
         </div>
       )}
 
       {results.length > 0 && (
         <>
-          <h2 style={{ marginTop: 24 }}>Backend attempts</h2>
+          <h2 style={{ marginTop: 24 }}>Percobaan backend</h2>
           {results.map((r) => (
             <div
               key={r.backend}
               style={{ marginTop: 12, padding: 16, borderRadius: 8, background: r.ok ? '#d4edda' : '#f8d7da' }}
             >
-              <strong>{r.backend.toUpperCase()}:</strong> {r.ok ? '✅ ok' : '❌ failed'}
+              <strong>{r.backend.toUpperCase()}:</strong> {r.ok ? '✅ berhasil' : '❌ gagal'}
               <pre style={pre}>{r.detail}</pre>
               {r.ok && (
                 <pre style={pre}>
@@ -202,12 +202,12 @@ export default function ModelDiagnostic() {
       )}
 
       <div style={{ marginTop: 24, fontSize: 14, color: '#555' }}>
-        <strong>How to read this:</strong>
+        <strong>Cara membaca hasil ini:</strong>
         <ul>
-          <li><code>First bytes</code> should start with <code>08</code> (valid ONNX). <code>3c</code> means HTML (wrong file).</li>
-          <li>If the error mentions <code>opset</code>, the model was exported with an opset too new for onnxruntime-web.</li>
-          <li>If it mentions an operator <code>is not implemented</code>, that op isn't supported on this backend.</li>
-          <li>If it mentions <code>protobuf</code> / <code>parse</code>, the file is corrupt (re-export / re-upload best.onnx).</li>
+          <li><code>Byte awal</code> harus diawali <code>08</code> (ONNX valid). <code>3c</code> berarti HTML (file salah).</li>
+          <li>Jika error menyebut <code>opset</code>, model diekspor dengan opset yang terlalu baru untuk onnxruntime-web.</li>
+          <li>Jika error menyebut operator <code>is not implemented</code>, operator itu tidak didukung di backend ini.</li>
+          <li>Jika error menyebut <code>protobuf</code> / <code>parse</code>, file rusak (ekspor ulang / unggah ulang best.onnx).</li>
         </ul>
       </div>
     </div>

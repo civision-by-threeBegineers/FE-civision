@@ -38,7 +38,7 @@ export default function LoginPage() {
 
         {/* Right panel: login form */}
         <div className="card__form">
-          <h1 className="form__title">Welcome Back!</h1>
+          <h1 className="form__title">Selamat Datang Kembali!</h1>
 
           <form onSubmit={handleSubmit} className="form">
             <div className="field">
@@ -58,7 +58,7 @@ export default function LoginPage() {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 className="field__input"
-                placeholder="Password"
+                placeholder="Kata Sandi"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 type="button"
                 className="field__toggle"
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
               >
                 {showPassword ? <Eye /> : <EyeOff />}
               </button>
@@ -75,16 +75,16 @@ export default function LoginPage() {
 
             <div className="form__row">
               <a className="form__forgot" href="#forgot">
-                Forgot Password?
+                Lupa Kata Sandi?
               </a>
               <button type="submit" className="form__submit">
-                Log In
+                Masuk
               </button>
             </div>
           </form>
 
           <p className="form__support">
-            Having trouble signing in? <a href="#support">Get Support.</a>
+            Kesulitan masuk? <a href="#support">Hubungi Bantuan.</a>
           </p>
         </div>
       </div>

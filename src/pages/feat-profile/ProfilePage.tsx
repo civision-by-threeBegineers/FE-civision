@@ -5,7 +5,7 @@ import './ProfilePage.css'
 /* ---------- Mock data (replace with the logged-in user from the API later) ---------- */
 const USER = {
   name: 'John Doe',
-  role: 'Inspector',
+  role: 'Inspektur',
   employeeId: '85040123',
   phone: '+6281234567890',
   email: 'john.doe@gmail.com',
@@ -15,9 +15,9 @@ const USER = {
 }
 
 const STATS = [
-  { key: 'validated', value: 1251, label: 'Total Validated Reports' },
-  { key: 'uploads', value: 130, label: 'Total Uploads' },
-  { key: 'tasks', value: 10, label: 'Active Task' },
+  { key: 'validated', value: 1251, label: 'Total Laporan Tervalidasi' },
+  { key: 'uploads', value: 130, label: 'Total Unggahan' },
+  { key: 'tasks', value: 10, label: 'Tugas Aktif' },
 ]
 
 function initials(name: string) {
@@ -32,12 +32,12 @@ function initials(name: string) {
 export default function ProfilePage() {
   return (
     // hero: purple band behind the topbar, like the design
-    <AppLayout title="Profile" hero>
+    <AppLayout title="Profil" hero>
       <section className="profile-card" aria-labelledby="profile-name">
         <div className="profile-card__head">
           <div className="profile-avatar">
             {USER.photoUrl ? (
-              <img src={USER.photoUrl} alt={`Photo of ${USER.name}`} />
+              <img src={USER.photoUrl} alt={`Foto ${USER.name}`} />
             ) : (
               <span className="profile-avatar__initials" aria-hidden="true">
                 {initials(USER.name)}

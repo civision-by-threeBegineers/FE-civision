@@ -44,9 +44,9 @@ function checkFiles(fileList: Iterable<File>) {
     const isJpgOrPng = ACCEPTED_TYPES.includes(file.type) || ACCEPTED_EXTENSIONS.test(file.name)
 
     if (!isJpgOrPng) {
-      errors.push(`${file.name}: only JPG and PNG files are allowed.`)
+      errors.push(`${file.name}: hanya file JPG dan PNG yang diperbolehkan.`)
     } else if (file.size > MAX_FILE_SIZE) {
-      errors.push(`${file.name}: file is larger than 10MB.`)
+      errors.push(`${file.name}: ukuran file lebih dari 10MB.`)
     } else {
       accepted.push(file)
     }
@@ -267,7 +267,7 @@ export default function UploadPage() {
   const isBusy = status === 'predicting' || status === 'uploading'
 
   return (
-    <AppLayout title="Upload Media">
+    <AppLayout title="Unggah Media">
       <section className="upload-page">
         <div
           className={`upload-dropzone${isDragging ? ' upload-dropzone--dragging' : ''}`}
@@ -276,8 +276,8 @@ export default function UploadPage() {
           onDrop={handleDrop}
         >
           <Icon.Folder />
-          <h2 className="upload-dropzone__title">Drop Your Photos!</h2>
-          <p className="upload-dropzone__hint">*Accepted formats: JPG, PNG (Max 10MB per file)</p>
+          <h2 className="upload-dropzone__title">Letakkan Foto Anda di Sini!</h2>
+          <p className="upload-dropzone__hint">*Format yang diterima: JPG, PNG (maks. 10MB per file)</p>
 
           <div className="upload-dropzone__buttons">
             <button
@@ -286,7 +286,7 @@ export default function UploadPage() {
               onClick={() => inputRef.current!.click()}
             >
               <Icon.Plus />
-              Add Files
+              Tambah File
             </button>
             {/* Take a photo with the device camera (WebRTC getUserMedia) */}
             <button
@@ -295,7 +295,7 @@ export default function UploadPage() {
               onClick={() => setCameraOpen(true)}
             >
               <Icon.Camera />
-              Use Camera
+              Gunakan Kamera
             </button>
           </div>
           {cameraOpen && (
@@ -326,7 +326,7 @@ export default function UploadPage() {
           )}
 
           {files.length > 0 && (
-            <ul className="upload-files" aria-label="Selected files">
+            <ul className="upload-files" aria-label="File terpilih">
               {files.map((file) => (
                 <li key={`${file.name}-${file.size}-${file.lastModified}`} className="upload-file">
                   <span className="upload-file__name">
@@ -342,7 +342,7 @@ export default function UploadPage() {
                   <button
                     type="button"
                     className="upload-file__remove"
-                    aria-label={`Remove ${file.name}`}
+                    aria-label={`Hapus ${file.name}`}
                     onClick={() => removeFile(file)}
                   >
                     <Icon.Close />
@@ -360,7 +360,7 @@ export default function UploadPage() {
               onClick={handleSubmit}
               disabled={isBusy}
             >
-              Submit
+              Kirim
             </button>
           )}
 
@@ -373,9 +373,9 @@ export default function UploadPage() {
         {analysisResults.length > 0 && (
           <div className="upload-results">
             <div className="upload-results__head">
-              <h3 className="upload-results__title">Detection Result</h3>
+              <h3 className="upload-results__title">Hasil Deteksi</h3>
               <span className="upload-results__count">
-                {totalDetections} total detection{totalDetections === 1 ? '' : 's'}
+                {totalDetections} deteksi total
               </span>
             </div>
             <div className="upload-results__grid">
@@ -422,7 +422,7 @@ export default function UploadPage() {
                   <Icon.Check />
                 </div>
                 <h2 id="upload-success-title" className="upload-success__title">
-                  Upload berhasil
+                  Unggah berhasil
                 </h2>
                 <p className="upload-success__subtitle">
                   {totalDetections > 0
@@ -444,7 +444,7 @@ export default function UploadPage() {
                     className="upload-success__btn upload-success__btn--primary"
                     onClick={() => navigate('/report')}
                   >
-                    Lihat Report
+                    Lihat Laporan
                   </button>
                 </div>
               </div>

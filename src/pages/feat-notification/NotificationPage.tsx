@@ -18,12 +18,12 @@ interface Notification {
 
 /* ---------- Mock data (replace with data from the API later) ---------- */
 const NOTIFICATIONS: Notification[] = [
-  { id: 1, type: 'report', title: 'New Report Added', message: 'New food stall reported at Jl. KH. Mas Mansyur.', hoursAgo: 2, unread: true },
-  { id: 2, type: 'report', title: 'New Report Added', message: 'New food stall reported at Jl. KH. Mas Mansyur.', hoursAgo: 6, unread: true },
-  { id: 3, type: 'report', title: 'New Report Added', message: 'New food stall reported at Jl. KH. Mas Mansyur.', hoursAgo: 10, unread: true },
-  { id: 4, type: 'verified', title: 'Report Verified', message: 'Your food stall report on Jl. KH. Mas Mansyur has been approved.', hoursAgo: 18, unread: false },
-  { id: 5, type: 'warning', title: 'Frequent Reports Detected', message: 'Persistent food stall reports at Coordinate : -6.1925, 106.7695', hoursAgo: 23, unread: false },
-  { id: 6, type: 'report', title: 'New Report Added', message: 'New food stall reported at Jl. KH. Mas Mansyur.', hoursAgo: 48, unread: true },
+  { id: 1, type: 'report', title: 'Laporan Baru Ditambahkan', message: 'Gerobak PKL baru dilaporkan di Jl. KH. Mas Mansyur.', hoursAgo: 2, unread: true },
+  { id: 2, type: 'report', title: 'Laporan Baru Ditambahkan', message: 'Gerobak PKL baru dilaporkan di Jl. KH. Mas Mansyur.', hoursAgo: 6, unread: true },
+  { id: 3, type: 'report', title: 'Laporan Baru Ditambahkan', message: 'Gerobak PKL baru dilaporkan di Jl. KH. Mas Mansyur.', hoursAgo: 10, unread: true },
+  { id: 4, type: 'verified', title: 'Laporan Terverifikasi', message: 'Laporan gerobak PKL Anda di Jl. KH. Mas Mansyur telah disetujui.', hoursAgo: 18, unread: false },
+  { id: 5, type: 'warning', title: 'Laporan Berulang Terdeteksi', message: 'Gerobak PKL terus dilaporkan di koordinat: -6.1925, 106.7695', hoursAgo: 23, unread: false },
+  { id: 6, type: 'report', title: 'Laporan Baru Ditambahkan', message: 'Gerobak PKL baru dilaporkan di Jl. KH. Mas Mansyur.', hoursAgo: 48, unread: true },
 ]
 
 const TYPE_ICONS: Record<NotificationType, ComponentType> = {
@@ -34,15 +34,15 @@ const TYPE_ICONS: Record<NotificationType, ComponentType> = {
 
 // Today = the last 24 hours. This Week = earlier this week (1 to 7 days ago).
 const TABS: { key: TabKey; label: string; matches: (n: Notification) => boolean }[] = [
-  { key: 'all', label: 'View All', matches: () => true },
-  { key: 'today', label: 'Today', matches: (n) => n.hoursAgo < 24 },
-  { key: 'week', label: 'This Week', matches: (n) => n.hoursAgo >= 24 && n.hoursAgo < 24 * 7 },
+  { key: 'all', label: 'Semua', matches: () => true },
+  { key: 'today', label: 'Hari Ini', matches: (n) => n.hoursAgo < 24 },
+  { key: 'week', label: 'Minggu Ini', matches: (n) => n.hoursAgo >= 24 && n.hoursAgo < 24 * 7 },
 ]
 
 function timeAgo(hours: number) {
-  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  if (hours < 24) return `${hours} jam lalu`
   const days = Math.floor(hours / 24)
-  return `${days} day${days === 1 ? '' : 's'} ago`
+  return `${days} hari lalu`
 }
 
 export default function NotificationPage() {
@@ -62,17 +62,17 @@ export default function NotificationPage() {
 
   return (
     // No topbar: this page has its own header (back button + title), like the design
-    <AppLayout title="Notification" fitScreen showTopbar={false}>
+    <AppLayout title="Notifikasi" fitScreen showTopbar={false}>
       <div className="notif">
         <header className="notif__header">
-          <button type="button" className="notif__back" aria-label="Back" onClick={goBack}>
+          <button type="button" className="notif__back" aria-label="Kembali" onClick={goBack}>
             <Icon.ChevronLeft />
           </button>
-          <h1 className="notif__title">Notification</h1>
+          <h1 className="notif__title">Notifikasi</h1>
         </header>
 
         {/* Filter tabs. The badge shows how many unread notifications each tab has. */}
-        <div className="notif-tabs" role="group" aria-label="Filter notifications">
+        <div className="notif-tabs" role="group" aria-label="Filter notifikasi">
           {TABS.map((t) => {
             const unread = NOTIFICATIONS.filter((n) => t.matches(n) && n.unread).length
             return (
@@ -84,7 +84,7 @@ export default function NotificationPage() {
                 onClick={() => setTab(t.key)}
               >
                 {t.label}
-                <span className="notif-tab__badge" aria-label={`${unread} unread`}>
+                <span className="notif-tab__badge" aria-label={`${unread} belum dibaca`}>
                   {unread}
                 </span>
               </button>
@@ -95,9 +95,9 @@ export default function NotificationPage() {
         {/* The list scrolls inside itself, so the header and tabs stay in place */}
         <div className="notif-list-wrap">
           {items.length === 0 ? (
-            <p className="notif-empty">No notifications.</p>
+            <p className="notif-empty">Tidak ada notifikasi.</p>
           ) : (
-            <ul className="notif-list" aria-label={`${activeTab.label} notifications`}>
+            <ul className="notif-list" aria-label={`Notifikasi ${activeTab.label}`}>
               {items.map((n) => {
                 const TypeIcon = TYPE_ICONS[n.type]
                 return (
@@ -112,7 +112,7 @@ export default function NotificationPage() {
                     <div className="notif-item__meta">
                       {n.unread && (
                         <span className="notif-item__dot">
-                          <span className="visually-hidden">Unread</span>
+                          <span className="visually-hidden">Belum dibaca</span>
                         </span>
                       )}
                       <span className="notif-item__time">{timeAgo(n.hoursAgo)}</span>

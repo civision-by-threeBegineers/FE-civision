@@ -1,71 +1,86 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { Map as LeafletMap, Marker } from 'leaflet'
+import type { Map as LeafletMap } from 'leaflet'
 import { AppLayout } from '../../components/AppLayout'
 import { Icon } from '../../components/Icons'
 import { filterByTimeRange, type MapViolation, type TimeRange } from '../../services/dashboard/mapData'
+import type { ReportStatus } from '../../services/report/getReports'
+import { updateReportStatus } from '../../services/report/updateReportStatus'
 import { ViolationMap } from './ViolationMap'
 import { LocationSearch, TimeRangeFilter, ZoomControls } from './MapControls'
+import { MapReportPanel } from './MapReportPanel'
 import { useMapData } from './useMapData'
 import './MapPage.css'
 
 const SEARCH_ZOOM = 17
 
-// Full-screen violation map (/dashboard/map), opened from the dashboard's map card.
+// Full-screen violation map (/map), opened from the dashboard's map card.
 export default function MapPage() {
   const navigate = useNavigate()
-  const { violations, zones, loading, error, retry } = useMapData()
+  const { violations, zones, loading, error, retry, updateStatus } = useMapData()
   const [range, setRange] = useState<TimeRange>('weekly')
   const [map, setMap] = useState<LeafletMap | null>(null)
-  const markers = useRef(new Map<string, Marker>())
-  const popupOpen = useRef(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [savingId, setSavingId] = useState<string | null>(null)
+  const [statusError, setStatusError] = useState<string | null>(null)
   const searchOpen = useRef(false)
   const rangeOpen = useRef(false)
 
-  const visible = useMemo(() => filterByTimeRange(violations, range), [violations, range])
+  // 'invalid' is hidden from the map (the backend also leaves it out of /api/dashboard/map)
+  const visible = useMemo(
+    () => filterByTimeRange(violations.filter((v) => v.status !== 'invalid'), range),
+    [violations, range],
+  )
+  // Looked up in the full list, so the panel stays open after a change to Tidak Valid
+  const selected = violations.find((v) => v.id === selectedId) ?? null
+  const saving = selected !== null && savingId === selected.id
 
   // Back to the dashboard; it puts keyboard focus back on the map card.
   const goBack = useCallback(() => navigate('/dashboard', { state: { focusMap: true } }), [navigate])
 
-  // Track open popups so Escape closes the popup first instead of leaving the page
-  useEffect(() => {
-    if (!map) return
-    const onOpen = () => (popupOpen.current = true)
-    const onClose = () => (popupOpen.current = false)
-    map.on('popupopen', onOpen)
-    map.on('popupclose', onClose)
-    return () => {
-      map.off('popupopen', onOpen)
-      map.off('popupclose', onClose)
-    }
-  }, [map])
+  const openPanel = useCallback((v: MapViolation) => {
+    setStatusError(null)
+    setSelectedId(v.id)
+  }, [])
+  const closePanel = useCallback(() => {
+    setStatusError(null)
+    setSelectedId(null)
+  }, [])
 
-  // Escape: close an open popup, otherwise return to the dashboard.
+  // Escape: close the detail panel, otherwise return to the dashboard.
   // (The search list and the time dropdown stop Escape themselves while open.)
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || searchOpen.current || rangeOpen.current) return
-      if (popupOpen.current) {
-        map?.closePopup()
+      if (selectedId) {
+        if (!saving) closePanel()
         return
       }
       goBack()
     }
     document.addEventListener('keydown', handle)
     return () => document.removeEventListener('keydown', handle)
-  }, [map, goBack])
+  }, [selectedId, saving, closePanel, goBack])
 
-  const setMarkerRef = useCallback((id: string, marker: Marker | null) => {
-    if (marker) markers.current.set(id, marker)
-    else markers.current.delete(id)
-  }, [])
-
-  // Fly to the picked search result, then open its popup
+  // Fly to the picked search result, then open its panel
   const handleSelect = (v: MapViolation) => {
     if (!map) return
-    map.closePopup()
-    map.once('moveend', () => markers.current.get(v.id)?.openPopup())
+    map.once('moveend', () => openPanel(v))
     map.flyTo([v.lat, v.lng], Math.max(map.getZoom(), SEARCH_ZOOM), { duration: 1.2 })
+  }
+
+  // Same flow as the Report page (useReports.changeStatus): save, then update locally
+  const changeStatus = async (id: string, status: ReportStatus) => {
+    setSavingId(id)
+    setStatusError(null)
+    try {
+      await updateReportStatus(id, status)
+      updateStatus(id, status)
+    } catch (err) {
+      setStatusError((err as { message?: string })?.message || 'gagal memperbarui status.')
+    } finally {
+      setSavingId(null)
+    }
   }
 
   const onSearchOpen = useCallback((open: boolean) => {
@@ -77,12 +92,12 @@ export default function MapPage() {
 
   return (
     <AppLayout title="Peta Pelanggaran" showTopbar={false} fullBleed>
-      <div className="map-page">
-        <ViolationMap violations={visible} zones={zones} onMapReady={setMap} markerRef={setMarkerRef} />
+      <div className={`map-page${selected ? ' map-page--panel' : ''}`}>
+        <ViolationMap violations={visible} zones={zones} onMapReady={setMap} onMarkerClick={openPanel} />
 
         {/* Controls on top of the map */}
         <div className="map-page__top">
-          <button type="button" className="map-back" aria-label="Kembali ke dashboard" onClick={goBack}>
+          <button type="button" className="map-back" aria-label="Kembali ke dasbor" onClick={goBack}>
             <Icon.ChevronLeft />
           </button>
           <LocationSearch violations={visible} onSelect={handleSelect} onOpenChange={onSearchOpen} />
@@ -110,6 +125,17 @@ export default function MapPage() {
         )}
 
         <ZoomControls map={map} />
+
+        {selected && (
+          <MapReportPanel
+            key={selected.id}
+            violation={selected}
+            saving={saving}
+            error={statusError}
+            onChangeStatus={(status) => changeStatus(selected.id, status)}
+            onClose={closePanel}
+          />
+        )}
       </div>
     </AppLayout>
   )

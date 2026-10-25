@@ -233,7 +233,7 @@
   .report-table th:nth-child(3) { width: 92px; }
   .report-table th:nth-child(4) { width: 84px; }
   .report-table th:nth-child(5) { width: 52px; }
-  .report-table th:nth-child(6) { width: 200px; }
+  .report-table th:nth-child(6) { width: 230px; }
 }
 
 /* Header stays visible when the table scrolls vertically */
@@ -280,7 +280,7 @@
   align-items: center;
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 124px;
+  max-width: 160px;
   border-radius: 8px;
   background: #e9e9f0;
   font-weight: 500;
@@ -309,6 +309,14 @@
   font: inherit;
   padding: 5px 20px 5px 22px;
   cursor: pointer;
+}
+
+/* Read-only badge for valid/invalid (same spacing as the select, minus the arrow) */
+.report-status-pick__label {
+  padding: 5px 10px 5px 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .report-status-pick__select:disabled {
@@ -444,6 +452,48 @@
   text-decoration: underline;
 }
 
+/* Status row: same layout as the other rows, value shown as a coloured badge */
+.edit-report__field--status {
+  align-items: center;
+}
+.edit-report__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid currentColor;
+}
+.edit-report__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.edit-report__status--valid {
+  color: #3d8550;
+  background: #e8f5ec;
+}
+.edit-report__status--invalid {
+  color: #b9382f;
+  background: #fdecea;
+}
+.edit-report__status--unverified {
+  color: #5f5f6b;
+  background: #efeff3;
+}
+.edit-report__change-title {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #5b58aa;
+}
+.edit-report__change-title + .edit-report__actions {
+  margin-top: 8px;
+}
 .edit-report__error {
   margin-top: 10px;
   font-size: 11px;
@@ -460,6 +510,7 @@
 .edit-report__btn {
   min-width: 82px;
   min-height: 32px;
+  padding: 0 12px;
   border: none;
   border-radius: 6px;
   color: #fff;
@@ -519,7 +570,7 @@
   /* The table scrolls sideways; wide enough for the status picker + icons
      (column widths for narrow containers are set above, with @container) */
   .report-table {
-    min-width: 720px;
+    min-width: 750px;
   }
 
   .report-table td {

@@ -8,8 +8,8 @@ import './ReportTable.css'
 
 const STATUS_LABELS: Record<ReportStatus, string> = {
   valid: 'Valid',
-  invalid: 'Invalid',
-  unverified: 'Unverified',
+  invalid: 'Tidak Valid',
+  unverified: 'Belum Diverifikasi',
 }
 const STATUS_ORDER: ReportStatus[] = ['valid', 'invalid', 'unverified']
 
@@ -33,9 +33,9 @@ function getPageItems(current: number, total: number): (number | 'gap')[] {
   return items
 }
 
-// The reports table with its pagination and report verification: pick a status
-// in the row, or press the pencil to open "Edit Report". Used by Report Details
-// and by the Dashboard's Review Progress, so both look and behave the same.
+// The reports table with its pagination and report verification: an unverified
+// report gets a status picker in the row; a valid/invalid one shows its status
+// as a badge, and the pencil opens the edit dialog to change it.
 export function ReportTable({ reports }: { reports: ReportsState }) {
   const { data, loading, error, page, setPage, pageSize, reload, savingId, statusError, clearStatusError, changeStatus } =
     reports
@@ -70,9 +70,9 @@ export function ReportTable({ reports }: { reports: ReportsState }) {
           <thead>
             <tr>
               <th scope="col">#</th>
-              <th scope="col">Location</th>
-              <th scope="col">Date</th>
-              <th scope="col">Timestamp</th>
+              <th scope="col">Lokasi</th>
+              <th scope="col">Tanggal</th>
+              <th scope="col">Waktu</th>
               <th scope="col">Media</th>
               <th scope="col">Status</th>
             </tr>
@@ -109,7 +109,7 @@ export function ReportTable({ reports }: { reports: ReportsState }) {
                           rel="noopener noreferrer"
                           title={row.mediaName ?? undefined}
                         >
-                          Link
+                          Tautan
                         </a>
                       ) : (
                         '-'
@@ -117,36 +117,45 @@ export function ReportTable({ reports }: { reports: ReportsState }) {
                     </td>
                     <td>
                       <div className="report-table__status-cell">
-                        {/* Status picker: changing it verifies the report right away */}
-                        <span className={`report-status-pick report-status-pick--${row.status}`}>
-                          <span className="report-status__dot" aria-hidden="true" />
-                          <select
-                            className="report-status-pick__select"
-                            aria-label={`Status laporan ${number}`}
-                            value={row.status}
-                            disabled={savingId === row.id}
-                            onChange={(e) => changeStatus(row.id, e.target.value as ReportStatus)}
-                          >
-                            {STATUS_ORDER.map((s) => (
-                              <option key={s} value={s}>
-                                {STATUS_LABELS[s]}
-                              </option>
-                            ))}
-                          </select>
-                          <Icon.ChevronDown />
-                        </span>
-                        <button
-                          type="button"
-                          className="report-table__icon-btn"
-                          aria-label={`Edit laporan ${number}`}
-                          title="Edit laporan"
-                          onClick={() => {
-                            clearStatusError()
-                            setEditingId(row.id)
-                          }}
-                        >
-                          <Icon.Edit />
-                        </button>
+                        {row.status === 'unverified' ? (
+                          // Status picker: changing it verifies the report right away
+                          <span className="report-status-pick report-status-pick--unverified">
+                            <span className="report-status__dot" aria-hidden="true" />
+                            <select
+                              className="report-status-pick__select"
+                              aria-label={`Status laporan ${number}`}
+                              value={row.status}
+                              disabled={savingId === row.id}
+                              onChange={(e) => changeStatus(row.id, e.target.value as ReportStatus)}
+                            >
+                              {STATUS_ORDER.map((s) => (
+                                <option key={s} value={s}>
+                                  {STATUS_LABELS[s]}
+                                </option>
+                              ))}
+                            </select>
+                            <Icon.ChevronDown />
+                          </span>
+                        ) : (
+                          <>
+                            <span className={`report-status-pick report-status-pick--${row.status}`}>
+                              <span className="report-status__dot" aria-hidden="true" />
+                              <span className="report-status-pick__label">{STATUS_LABELS[row.status]}</span>
+                            </span>
+                            <button
+                              type="button"
+                              className="report-table__icon-btn"
+                              aria-label={`Ubah status laporan ${number}`}
+                              title="Ubah status laporan"
+                              onClick={() => {
+                                clearStatusError()
+                                setEditingId(row.id)
+                              }}
+                            >
+                              <Icon.Edit />
+                            </button>
+                          </>
+                        )}
                         <a
                           className="report-table__icon-btn"
                           href={backendUrl(`${row.downloadUrl}?inline=1`)}
@@ -169,7 +178,7 @@ export function ReportTable({ reports }: { reports: ReportsState }) {
 
       {/* Pagination (hidden when everything fits on one page) */}
       {totalPages > 1 && (
-        <nav className="report-pagination" aria-label="Report pages">
+        <nav className="report-pagination" aria-label="Halaman laporan">
           <div className="report-pagination__pages">
             {getPageItems(page, totalPages).map((item, i) =>
               item === 'gap' ? (
@@ -192,7 +201,7 @@ export function ReportTable({ reports }: { reports: ReportsState }) {
           <button
             type="button"
             className="report-pagination__next"
-            aria-label="Next page"
+            aria-label="Halaman berikutnya"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
           >

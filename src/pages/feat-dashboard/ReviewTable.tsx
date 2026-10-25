@@ -3,8 +3,8 @@ import type { ReportsState } from '../feat-report/useReports'
 
 const STATUS_LABELS: Record<ReportStatus, string> = {
   valid: 'Valid',
-  invalid: 'Invalid',
-  unverified: 'Unverified',
+  invalid: 'Tidak Valid',
+  unverified: 'Belum Diverifikasi',
 }
 
 const COLUMN_COUNT = 3
@@ -26,8 +26,8 @@ export function ReviewTable({ reports }: { reports: ReportsState }) {
       <table className="table" aria-busy={loading}>
         <thead>
           <tr>
-            <th scope="col">Location</th>
-            <th scope="col">Timestamp</th>
+            <th scope="col">Lokasi</th>
+            <th scope="col">Waktu</th>
             <th scope="col">Status</th>
           </tr>
         </thead>

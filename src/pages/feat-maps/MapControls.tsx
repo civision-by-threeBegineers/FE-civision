@@ -91,7 +91,7 @@ export function LocationSearch({ violations, onSelect, onOpenChange }: LocationS
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={isOpen && active >= 0 ? `${listId}-${active}` : undefined}
-          placeholder="Search something..."
+          placeholder="Cari lokasi..."
           maxLength={100}
           value={text}
           onChange={(e) => {
@@ -141,9 +141,9 @@ export function LocationSearch({ violations, onSelect, onOpenChange }: LocationS
 /* ======================= Time range (listbox dropdown) ======================= */
 
 export const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
+  { value: 'daily', label: 'Harian' },
+  { value: 'weekly', label: 'Mingguan' },
+  { value: 'monthly', label: 'Bulanan' },
 ]
 
 interface TimeRangeFilterProps {

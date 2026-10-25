@@ -104,7 +104,7 @@ export function AppLayout({
               ref={menuButtonRef}
               type="button"
               className="icon-btn"
-              aria-label="Open menu"
+              aria-label="Buka menu"
               aria-controls="app-sidebar"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(true)}

@@ -12,15 +12,16 @@ interface NavItemData {
 
 // Items with a `to` path open a page. The others don't have a page yet.
 const NAV_TOP: NavItemData[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: Icon.Dashboard, to: '/dashboard' },
-  { key: 'report', label: 'Report Details', icon: Icon.Report, to: '/report' },
-  { key: 'upload', label: 'Upload Media', icon: Icon.Upload, to: '/upload' },
+  { key: 'dashboard', label: 'Dasbor', icon: Icon.Dashboard, to: '/dashboard' },
+  { key: 'map', label: 'Peta', icon: Icon.Pin, to: '/map' },
+  { key: 'report', label: 'Detail Laporan', icon: Icon.Report, to: '/report' },
+  { key: 'upload', label: 'Unggah Media', icon: Icon.Upload, to: '/upload' },
 ]
 
 const NAV_MID: NavItemData[] = [
-  { key: 'profile', label: 'Profile', icon: Icon.Profile, to: '/profile' },
-  { key: 'settings', label: 'Settings', icon: Icon.Settings },
-  { key: 'help', label: 'Get Help', icon: Icon.Help, to: '/help' },
+  { key: 'profile', label: 'Profil', icon: Icon.Profile, to: '/profile' },
+  { key: 'settings', label: 'Pengaturan', icon: Icon.Settings, to: '/settings' },
+  { key: 'help', label: 'Bantuan', icon: Icon.Help, to: '/help' },
 ]
 
 function NavItem({ item }: { item: NavItemData }) {
@@ -71,7 +72,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           ref={closeButtonRef}
           type="button"
           className="sidebar__close"
-          aria-label="Close menu"
+          aria-label="Tutup menu"
           onClick={onClose}
         >
           <Icon.Close />
@@ -92,7 +93,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
       <button type="button" className="nav-item nav-item--logout" onClick={() => navigate('/')}>
         <Icon.Logout />
-        <span>Logout</span>
+        <span>Keluar</span>
       </button>
     </aside>
   )

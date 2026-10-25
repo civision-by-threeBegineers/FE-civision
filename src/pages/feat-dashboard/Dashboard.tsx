@@ -21,7 +21,7 @@ export default function Dashboard() {
   const { violations, zones, error: mapError } = useMapData()
   const previewViolations = useMemo(() => filterByTimeRange(violations, 'weekly'), [violations])
 
-  const openMap = () => navigate('/dashboard/map')
+  const openMap = () => navigate('/map')
 
   // Coming back from the full-screen map: put keyboard focus back on the map card
   useEffect(() => {
@@ -32,17 +32,17 @@ export default function Dashboard() {
 
   return (
     // fitScreen: the dashboard always fits on one screen and can't be scrolled
-    <AppLayout title="Dashboard" fitScreen>
+    <AppLayout title="Dasbor" fitScreen>
       {/* Welcome banner */}
       <section className="banner">
         <div className="banner__text">
-          <h2 className="banner__greeting">Good Morning, John Doe</h2>
+          <h2 className="banner__greeting">Selamat Pagi, John Doe</h2>
           <p className="banner__desc" onClick={() => navigate('/report')}>
-            You currently have <a href="#incidents">10 new incidents</a> queued up for review.
+            Saat ini ada <a href="#incidents">10 insiden baru</a> yang menunggu untuk ditinjau.
             <br />
-            Let&apos;s tackle them!
+            Ayo selesaikan!
           </p>
-          <button type="button" className="banner__btn" onClick={() => navigate('/report')}>Review It</button>
+          <button type="button" className="banner__btn" onClick={() => navigate('/report')}>Tinjau Sekarang</button>
         </div>
         <div className="banner__illustration" aria-hidden="true">
           <img className="banner__officer-img" src={Officer} alt="" />
@@ -53,14 +53,14 @@ export default function Dashboard() {
       <section className="content">
         <div className="review">
           <div className="review__head">
-            <h3 className="review__title">Review Progress</h3>
+            <h3 className="review__title">Progres Peninjauan</h3>
             <div className="search">
               <input
                 className="search__input"
-                placeholder="Search something..."
-                aria-label="Search review progress"
+                placeholder="Cari sesuatu..."
+                aria-label="Cari progres peninjauan"
               />
-              <button className="search__btn" aria-label="Search">
+              <button className="search__btn" aria-label="Cari">
                 <Icon.Search />
               </button>
             </div>

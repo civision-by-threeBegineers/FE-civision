@@ -38,7 +38,7 @@ export function Topbar({ title, menuOpen = false, menuButtonRef, onMenuClick }: 
           ref={menuButtonRef}
           type="button"
           className="icon-btn topbar__menu"
-          aria-label="Open menu"
+          aria-label="Buka menu"
           aria-controls="app-sidebar"
           aria-expanded={menuOpen}
           onClick={onMenuClick}
@@ -57,7 +57,7 @@ export function Topbar({ title, menuOpen = false, menuButtonRef, onMenuClick }: 
         <button
           type="button"
           className="icon-btn"
-          aria-label="Notifications"
+          aria-label="Notifikasi"
           aria-current={pathname === '/notifications' ? 'page' : undefined}
           onClick={() => navigate('/notifications')}
         >
@@ -66,7 +66,7 @@ export function Topbar({ title, menuOpen = false, menuButtonRef, onMenuClick }: 
         <button
           type="button"
           className="icon-btn"
-          aria-label="Profile"
+          aria-label="Profil"
           aria-current={pathname === '/profile' ? 'page' : undefined}
           onClick={() => navigate('/profile')}
         >

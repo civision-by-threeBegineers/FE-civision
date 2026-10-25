@@ -25,7 +25,7 @@ export default function HelpPage() {
         <button
           type="button"
           className="help-back"
-          aria-label="Back to dashboard"
+          aria-label="Kembali ke dasbor"
           onClick={() => navigate('/dashboard')}
         >
           <Icon.ChevronLeft />
@@ -41,9 +41,9 @@ export default function HelpPage() {
         <section className="help-panel" aria-labelledby="help-title">
           <form className="help-form" onSubmit={handleSubmit}>
             <h1 id="help-title" className="help-title">
-              How can we
+              Ada yang bisa kami
               <br />
-              help you today?
+              bantu hari ini?
             </h1>
 
             <input
@@ -59,15 +59,15 @@ export default function HelpPage() {
 
             <textarea
               className="help-input help-input--textarea"
-              placeholder="Type Your Questions..."
-              aria-label="Your question"
+              placeholder="Tulis pertanyaan Anda..."
+              aria-label="Pertanyaan Anda"
               required
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
             />
 
             <button type="submit" className="help-send">
-              Send
+              Kirim
             </button>
           </form>
         </section>
