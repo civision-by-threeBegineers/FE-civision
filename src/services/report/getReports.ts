@@ -1,7 +1,8 @@
 // Fetches one page of the Report Details table from the backend.
 //
 // Backend contract (BE - civision):
-//   GET {VITE_API_BASE_URL}/api/reports?page=1&pageSize=10
+//   GET {VITE_API_BASE_URL}/api/reports?page=1&pageSize=10&sortBy=createdAt&sortDir=desc
+//   (sortBy: createdAt | location | media | status; sortDir: asc | desc; both optional)
 //   200 -> { ok: true, stats, reports: [...one page...], pagination, isEmpty }
 //   400 -> { ok: false, message }
 
@@ -9,6 +10,8 @@ const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 const REPORTS_ENDPOINT = `${BASE_URL}/api/reports`
 
 export type ReportStatus = 'valid' | 'invalid' | 'unverified'
+export type ReportSortBy = 'createdAt' | 'location' | 'media' | 'status'
+export type SortDir = 'asc' | 'desc'
 
 export interface ReportStats {
   total: number
@@ -60,7 +63,7 @@ export function backendUrl(path: string) {
 }
 
 export async function getReports(
-  { page, pageSize }: { page: number; pageSize: number },
+  { page, pageSize, sortBy, sortDir }: { page: number; pageSize: number; sortBy?: ReportSortBy; sortDir?: SortDir },
   signal?: AbortSignal,
 ): Promise<ReportsPage> {
   if (!BASE_URL) {
@@ -68,6 +71,8 @@ export async function getReports(
   }
 
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) })
+  if (sortBy) params.set('sortBy', sortBy)
+  if (sortDir) params.set('sortDir', sortDir)
 
   let res: Response
   try {

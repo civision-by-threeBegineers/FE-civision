@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Icon } from '../../components/Icons'
 import { backendUrl, type ReportStatus } from '../../services/report/getReports'
 import { EditReportDialog } from './EditReportDialog'
-import { reportNumber } from './reportState'
+import { reportNumber, type SortColumn } from './reportState'
 import type { ReportsState } from './useReports'
 import './ReportTable.css'
 
@@ -13,8 +13,19 @@ const STATUS_LABELS: Record<ReportStatus, string> = {
 }
 const STATUS_ORDER: ReportStatus[] = ['valid', 'invalid', 'unverified']
 
+// Table columns; the ones with `sort` get a clickable "v"/"^" header.
+// "#" is the row position in the current order, so sorting by it changes nothing.
+const COLUMNS: { label: string; sort?: SortColumn }[] = [
+  { label: '#' },
+  { label: 'Lokasi', sort: 'lokasi' },
+  { label: 'Tanggal', sort: 'tanggal' },
+  { label: 'Waktu', sort: 'waktu' },
+  { label: 'Media', sort: 'media' },
+  { label: 'Status', sort: 'status' },
+]
+
 // Number of table columns, used by the loading / error / empty rows.
-const COLUMN_COUNT = 6
+const COLUMN_COUNT = COLUMNS.length
 
 // Which page buttons to show: the first two, the last two, and the pages next to
 // the current one. Missing numbers in between become "…".
@@ -37,8 +48,21 @@ function getPageItems(current: number, total: number): (number | 'gap')[] {
 // report gets a status picker in the row; a valid/invalid one shows its status
 // as a badge, and the pencil opens the edit dialog to change it.
 export function ReportTable({ reports }: { reports: ReportsState }) {
-  const { data, loading, error, page, setPage, pageSize, reload, savingId, statusError, clearStatusError, changeStatus } =
-    reports
+  const {
+    data,
+    loading,
+    error,
+    page,
+    setPage,
+    pageSize,
+    reload,
+    savingId,
+    statusError,
+    clearStatusError,
+    changeStatus,
+    sort,
+    changeSort,
+  } = reports
   const [editingId, setEditingId] = useState<string | null>(null)
 
   const rows = data?.reports ?? []
@@ -69,12 +93,38 @@ export function ReportTable({ reports }: { reports: ReportsState }) {
         <table className={`report-table${loading && data ? ' report-table--loading' : ''}`} aria-busy={loading}>
           <thead>
             <tr>
-              <th scope="col">#</th>
-              <th scope="col">Lokasi</th>
-              <th scope="col">Tanggal</th>
-              <th scope="col">Waktu</th>
-              <th scope="col">Media</th>
-              <th scope="col">Status</th>
+              {COLUMNS.map(({ label, sort: column }) => {
+                if (!column) return <th key={label} scope="col">{label}</th>
+                const active = sort.column === column
+                const asc = active && sort.dir === 'asc'
+                return (
+                  <th
+                    key={label}
+                    scope="col"
+                    className={active ? 'report-table__th--active' : undefined}
+                    aria-sort={active ? (asc ? 'ascending' : 'descending') : undefined}
+                  >
+                    <button
+                      type="button"
+                      className="report-table__sort"
+                      title={
+                        active
+                          ? `Urutan: ${asc ? 'kecil ke besar' : 'besar ke kecil'}. Klik untuk membalik.`
+                          : `Klik untuk mengurutkan berdasarkan ${label}`
+                      }
+                      onClick={() => changeSort(column)}
+                    >
+                      {label}
+                      <span
+                        className={`report-table__sort-icon${asc ? ' report-table__sort-icon--asc' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <Icon.ChevronDown />
+                      </span>
+                    </button>
+                  </th>
+                )
+              })}
             </tr>
           </thead>
           <tbody>

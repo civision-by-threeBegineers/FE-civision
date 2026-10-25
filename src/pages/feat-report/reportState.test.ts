@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import type { ReportRow, ReportsPage, ReportStatus } from '../../services/report/getReports'
-import { applyStatusChange, reportNumber } from './reportState'
+import { applyStatusChange, DEFAULT_SORT, nextSort, reportNumber, SORT_FIELD } from './reportState'
 
 const row = (id: string, status: ReportStatus): ReportRow => ({
   id,
@@ -62,5 +62,27 @@ describe('reportNumber', () => {
     expect(reportNumber(1, 10, 0)).toBe('00001')
     expect(reportNumber(2, 10, 0)).toBe('00011')
     expect(reportNumber(3, 10, 2)).toBe('00023')
+  })
+})
+
+describe('nextSort', () => {
+  it('defaults to newest date first', () => {
+    expect(DEFAULT_SORT).toEqual({ column: 'tanggal', dir: 'desc' })
+  })
+
+  it('flips the direction of the active column', () => {
+    const asc = nextSort(DEFAULT_SORT, 'tanggal')
+    expect(asc).toEqual({ column: 'tanggal', dir: 'asc' })
+    expect(nextSort(asc, 'tanggal')).toEqual({ column: 'tanggal', dir: 'desc' })
+  })
+
+  it('makes a new column the only active one, starting at desc', () => {
+    expect(nextSort({ column: 'tanggal', dir: 'asc' }, 'lokasi')).toEqual({ column: 'lokasi', dir: 'desc' })
+    expect(nextSort({ column: 'waktu', dir: 'asc' }, 'tanggal')).toEqual({ column: 'tanggal', dir: 'desc' })
+  })
+
+  it('sorts Tanggal and Waktu by the same timestamp', () => {
+    expect(SORT_FIELD.tanggal).toBe('createdAt')
+    expect(SORT_FIELD.waktu).toBe('createdAt')
   })
 })

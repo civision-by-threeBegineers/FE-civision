@@ -243,6 +243,56 @@
   z-index: 1;
 }
 
+/* ---------- Sortable headers ---------- */
+/* The headers are purple, so the active one turns dark (a purple arrow would not show). */
+.report-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.report-table__sort-icon {
+  display: inline-flex;
+  opacity: 0.45;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.report-table__sort:hover .report-table__sort-icon {
+  opacity: 1;
+}
+
+/* "^" = the "v" icon turned around */
+.report-table__sort-icon--asc {
+  transform: rotate(180deg);
+}
+
+.report-table th.report-table__th--active {
+  background: var(--purple-dark);
+  font-weight: 700;
+}
+
+.report-table__th--active .report-table__sort-icon {
+  opacity: 1;
+}
+
+.report-table__sort:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-table__sort-icon {
+    transition: none;
+  }
+}
+
 .report-table__icon-btn {
   border: none;
   background: none;

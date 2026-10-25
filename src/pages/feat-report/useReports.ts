@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getReports, type ReportsPage, type ReportStatus } from '../../services/report/getReports'
 import { updateReportStatus } from '../../services/report/updateReportStatus'
-import { applyStatusChange } from './reportState'
+import { applyStatusChange, DEFAULT_SORT, nextSort, SORT_FIELD, type SortColumn, type TableSort } from './reportState'
 
 // Loads one page of reports at a time from the backend, and verifies reports
 // (changes their status). Shared by Report Details and the Dashboard's Review Progress.
@@ -13,6 +13,8 @@ export function useReports(pageSize: number) {
   const [reloadKey, setReloadKey] = useState(0) // bumped by the "Coba lagi" button
   const [savingId, setSavingId] = useState<string | null>(null) // report whose status is being saved
   const [statusError, setStatusError] = useState<string | null>(null)
+  const [sort, setSort] = useState<TableSort>(DEFAULT_SORT) // sorted on the server (pagination is there)
+  const sortBy = SORT_FIELD[sort.column]
 
   // Fetch the current page. Changing pages aborts the previous request, so a slow
   // response can't overwrite a newer page.
@@ -21,7 +23,7 @@ export function useReports(pageSize: number) {
     setLoading(true)
     setError(null)
 
-    getReports({ page, pageSize }, controller.signal)
+    getReports({ page, pageSize, sortBy, sortDir: sort.dir }, controller.signal)
       .then((result) => {
         setData(result)
         // The page no longer exists (e.g. reports were deleted): jump to the last one.
@@ -37,9 +39,14 @@ export function useReports(pageSize: number) {
       })
 
     return () => controller.abort()
-  }, [page, pageSize, reloadKey])
+  }, [page, pageSize, sortBy, sort.dir, reloadKey])
 
   const reload = useCallback(() => setReloadKey((k) => k + 1), [])
+  // A new order starts again at page 1.
+  const changeSort = useCallback((column: SortColumn) => {
+    setSort((s) => nextSort(s, column))
+    setPage(1)
+  }, [])
   const clearStatusError = useCallback(() => setStatusError(null), [])
 
   // Saves the new status on the backend, then updates the row and the stat cards.
@@ -71,6 +78,8 @@ export function useReports(pageSize: number) {
     statusError,
     clearStatusError,
     changeStatus,
+    sort,
+    changeSort,
   }
 }
 
